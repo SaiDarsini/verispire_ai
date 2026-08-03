@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>Billing</h2><p>Manage your plan and payment details.</p></div>
+      </div>
+
+      <div class="glass-card card">
+        <div class="card-header">
+          <h3>Current Plan</h3>
+          <span class="badge badge-accent">Starter — Free</span>
+        </div>
+        <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:20px;">
+          You're on the free Starter plan: 1 workspace, 2 AI agents enabled, 500MB storage.
+        </p>
+        <a href="../index.html#pricing" class="btn btn-primary">Upgrade Plan</a>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card card">
+          <div class="card-header"><h3>Payment Method</h3></div>
+          <div class="empty-state" style="padding:30px 10px;">
+            <div class="icon-wrap">💳</div>
+            <h4>No payment method on file</h4>
+            <p>Add a card when you upgrade to a paid plan.</p>
+          </div>
+        </div>
+        <div class="glass-card card">
+          <div class="card-header"><h3>Billing History</h3></div>
+          <div class="empty-state" style="padding:30px 10px;">
+            <div class="icon-wrap">🧾</div>
+            <h4>No invoices yet</h4>
+            <p>Invoices will appear here once you upgrade.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>initDashboardShell('Billing');</script>
+</body>
+</html>

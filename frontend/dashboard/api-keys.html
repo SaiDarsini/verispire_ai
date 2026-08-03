@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Keys — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>API Keys</h2><p>Use these keys to call the VICTORUS AI API programmatically.</p></div>
+        <button class="btn btn-primary" id="new-key-btn">+ Generate Key</button>
+      </div>
+
+      <div class="glass-card card" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Prefix</th><th>Status</th><th>Created</th><th></th></tr></thead>
+          <tbody id="keys-tbody"><tr><td colspan="5"><div class="skeleton" style="height:20px;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New key modal -->
+<div id="key-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;">
+  <div class="glass-card" style="width:100%;max-width:440px;padding:28px;background:var(--bg-secondary);" id="key-modal-content">
+    <h3 style="margin-bottom:18px;">Generate API Key</h3>
+    <form id="key-form">
+      <div class="field"><label for="key-name">Key name</label><input type="text" id="key-name" placeholder="e.g. Production Server" required></div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button type="button" class="btn btn-ghost btn-block" id="close-key-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Generate</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => {
+  const user = await initDashboardShell('API Keys');
+  if (!user) return;
+  await loadKeys();
+
+  document.getElementById('new-key-btn').addEventListener('click', () => document.getElementById('key-modal').style.display = 'flex');
+  document.getElementById('close-key-modal').addEventListener('click', () => resetKeyModal());
+  document.getElementById('key-form').addEventListener('submit', createKey);
+})();
+
+function resetKeyModal() {
+  document.getElementById('key-modal').style.display = 'none';
+  document.getElementById('key-modal-content').innerHTML = `
+    <h3 style="margin-bottom:18px;">Generate API Key</h3>
+    <form id="key-form">
+      <div class="field"><label for="key-name">Key name</label><input type="text" id="key-name" placeholder="e.g. Production Server" required></div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button type="button" class="btn btn-ghost btn-block" id="close-key-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Generate</button>
+      </div>
+    </form>
+  `;
+  document.getElementById('close-key-modal').addEventListener('click', () => document.getElementById('key-modal').style.display = 'none');
+  document.getElementById('key-form').addEventListener('submit', createKey);
+}
+
+async function loadKeys() {
+  try {
+    const keys = await Api.listApiKeys();
+    const tbody = document.getElementById('keys-tbody');
+    if (!keys.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon-wrap">🔑</div><h4>No API keys yet</h4><p>Generate one to start calling the VICTORUS AI API.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = keys.map(k => `
+      <tr>
+        <td style="color:var(--text-heading);font-weight:600;">${escapeHtml(k.name)}</td>
+        <td><code style="color:var(--text-muted);">${escapeHtml(k.key_prefix)}...</code></td>
+        <td><span class="badge ${k.is_active ? 'badge-accent' : 'badge-muted'}">${k.is_active ? 'Active' : 'Revoked'}</span></td>
+        <td>${timeAgo(k.created_at)}</td>
+        <td style="text-align:right;"><button class="btn btn-ghost btn-sm" style="color:var(--error)" onclick="revokeKey('${k.id}')">Revoke</button></td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function createKey(e) {
+  e.preventDefault();
+  const name = document.getElementById('key-name').value.trim();
+  if (!name) return;
+  try {
+    const result = await Api.createApiKey(name);
+    document.getElementById('key-modal-content').innerHTML = `
+      <h3 style="margin-bottom:10px;">Key Generated</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Copy this key now — you won't be able to see it again.</p>
+      <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:monospace;font-size:12.5px;color:var(--accent);word-break:break-all;margin-bottom:18px;">${result.key}</div>
+      <button class="btn btn-primary btn-block" id="done-key-btn">Done</button>
+    `;
+    document.getElementById('done-key-btn').addEventListener('click', () => { resetKeyModal(); loadKeys(); });
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function revokeKey(id) {
+  if (!confirm('Revoke this API key? Any integrations using it will stop working.')) return;
+  try {
+    await Api.revokeApiKey(id);
+    toast('Key revoked', 'success');
+    await loadKeys();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

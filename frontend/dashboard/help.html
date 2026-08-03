@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<style>
+  .help-faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; cursor: pointer; }
+  .help-faq-item:last-child { border-bottom: none; }
+  .help-faq-q { display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--text-heading); font-size: 14px; }
+  .help-faq-a { max-height: 0; overflow: hidden; transition: max-height var(--t-slow) var(--ease); color: var(--text-muted); font-size: 13.5px; }
+  .help-faq-item.open .help-faq-a { max-height: 200px; padding-top: 10px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header"><div><h2>Help &amp; Support</h2><p>Find answers or reach out to our team.</p></div></div>
+
+      <div class="grid-2">
+        <div class="glass-card card">
+          <div class="card-header"><h3>Common Questions</h3></div>
+          <div class="help-faq-item">
+            <div class="help-faq-q"><span>Why is the AI giving the same reply every time?</span><span>+</span></div>
+            <div class="help-faq-a">You're on VICTORUS AI Version 1 — the platform foundation. AI integration (Gemini) is coming in Version 2; today every message returns a placeholder reply.</div>
+          </div>
+          <div class="help-faq-item">
+            <div class="help-faq-q"><span>How do I enable more agents?</span><span>+</span></div>
+            <div class="help-faq-a">Go to the Agents page and toggle any agent on or off for your workspace.</div>
+          </div>
+          <div class="help-faq-item">
+            <div class="help-faq-q"><span>How do I reset my password?</span><span>+</span></div>
+            <div class="help-faq-a">Log out and use "Forgot password?" on the login screen, or change it directly from Settings while logged in.</div>
+          </div>
+          <div class="help-faq-item">
+            <div class="help-faq-q"><span>Where are my uploaded files stored?</span><span>+</span></div>
+            <div class="help-faq-a">All files live under the Files page and are private to your account.</div>
+          </div>
+        </div>
+
+        <div class="glass-card card">
+          <div class="card-header"><h3>Contact Support</h3></div>
+          <form id="support-form">
+            <div class="field"><label for="support-subject">Subject</label><input type="text" id="support-subject" required></div>
+            <div class="field"><label for="support-message">Message</label><textarea id="support-message" rows="5" required></textarea></div>
+            <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => { await initDashboardShell('Help & Support'); })();
+
+document.querySelectorAll('.help-faq-item').forEach(item => {
+  item.querySelector('.help-faq-q').addEventListener('click', () => item.classList.toggle('open'));
+});
+
+document.getElementById('support-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  toast("Message sent! We'll get back to you within 24 hours.", 'success');
+  e.target.reset();
+});
+</script>
+</body>
+</html>

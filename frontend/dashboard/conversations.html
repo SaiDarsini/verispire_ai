@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<link rel="stylesheet" href="../assets/css/chat.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="chat-shell">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-messages-inner" id="chat-messages-inner">
+          <div class="empty-state">
+            <div class="icon-wrap">💬</div>
+            <h4>Say hello</h4>
+            <p>Send a message to start chatting with your AI assistant.</p>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <div class="chat-input-inner">
+          <textarea id="chat-input" rows="1" placeholder="Message your AI assistant..."></textarea>
+          <button class="send-fab" id="send-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script src="../assets/js/chat.js"></script>
+</body>
+</html>

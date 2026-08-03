@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<style>
+  .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 0 4px; }
+  .kanban-col-header h4 { font-size: 13.5px; color: var(--text-heading); display: flex; align-items: center; gap: 8px; }
+  .kanban-col-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .task-card { padding: 14px; margin-bottom: 10px; cursor: grab; }
+  .task-card h5 { font-size: 13.5px; color: var(--text-heading); margin-bottom: 8px; }
+  .task-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .task-card-footer { display: flex; justify-content: space-between; align-items: center; }
+  .task-actions { display: flex; gap: 6px; }
+  .task-actions button { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--card-bg); border: 1px solid var(--glass-border); }
+  @media (max-width: 900px) { .kanban { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>Tasks</h2><p>Track what your AI agents and you are working on.</p></div>
+        <button class="btn btn-primary" id="add-task-btn">+ New Task</button>
+      </div>
+
+      <div class="kanban">
+        <div>
+          <div class="kanban-col-header"><h4><span class="dot" style="background:var(--text-muted)"></span> To Do</h4><span class="badge badge-muted" id="count-todo">0</span></div>
+          <div id="col-todo"></div>
+        </div>
+        <div>
+          <div class="kanban-col-header"><h4><span class="dot" style="background:var(--accent-blue)"></span> In Progress</h4><span class="badge badge-blue" id="count-in_progress">0</span></div>
+          <div id="col-in_progress"></div>
+        </div>
+        <div>
+          <div class="kanban-col-header"><h4><span class="dot" style="background:var(--accent)"></span> Done</h4><span class="badge badge-accent" id="count-done">0</span></div>
+          <div id="col-done"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add task modal -->
+<div id="task-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;">
+  <div class="glass-card" style="width:100%;max-width:440px;padding:28px;background:var(--bg-secondary);">
+    <h3 style="margin-bottom:18px;">New Task</h3>
+    <form id="task-form">
+      <div class="field"><label for="task-title">Title</label><input type="text" id="task-title" required></div>
+      <div class="field"><label for="task-desc">Description</label><textarea id="task-desc" rows="3"></textarea></div>
+      <div class="field"><label for="task-priority">Priority</label>
+        <select id="task-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button type="button" class="btn btn-ghost btn-block" id="close-modal-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => {
+  const user = await initDashboardShell('Tasks');
+  if (!user) return;
+  await loadTasks();
+
+  document.getElementById('add-task-btn').addEventListener('click', () => toggleModal(true));
+  document.getElementById('close-modal-btn').addEventListener('click', () => toggleModal(false));
+  document.getElementById('task-form').addEventListener('submit', createTask);
+})();
+
+function toggleModal(show) {
+  document.getElementById('task-modal').style.display = show ? 'flex' : 'none';
+}
+
+async function loadTasks() {
+  try {
+    const tasks = await Api.listTasks();
+    ['todo', 'in_progress', 'done'].forEach(status => {
+      const items = tasks.filter(t => t.status === status);
+      document.getElementById(`count-${status}`).textContent = items.length;
+      const col = document.getElementById(`col-${status}`);
+      col.innerHTML = items.length
+        ? items.map(t => taskCardHtml(t)).join('')
+        : `<div class="empty-state" style="padding:24px 10px;"><p>No tasks here</p></div>`;
+    });
+    document.querySelectorAll('.task-move').forEach(btn => {
+      btn.addEventListener('click', () => moveTask(btn.dataset.id, btn.dataset.to));
+    });
+    document.querySelectorAll('.task-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteTask(btn.dataset.id));
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+function taskCardHtml(t) {
+  const priorityBadge = { low: 'badge-muted', medium: 'badge-blue', high: 'badge-error' }[t.priority] || 'badge-muted';
+  const next = { todo: 'in_progress', in_progress: 'done', done: 'todo' }[t.status];
+  const nextLabel = { todo: 'Start →', in_progress: 'Finish →', done: 'Reopen' }[t.status];
+  return `
+    <div class="glass-card task-card">
+      <h5>${escapeHtml(t.title)}</h5>
+      ${t.description ? `<p>${escapeHtml(t.description)}</p>` : ''}
+      <div class="task-card-footer">
+        <span class="badge ${priorityBadge}">${t.priority}</span>
+        <div class="task-actions">
+          <button class="task-move" data-id="${t.id}" data-to="${next}">${nextLabel}</button>
+          <button class="task-delete" data-id="${t.id}">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function createTask(e) {
+  e.preventDefault();
+  const title = document.getElementById('task-title').value.trim();
+  const description = document.getElementById('task-desc').value.trim();
+  const priority = document.getElementById('task-priority').value;
+  if (!title) return;
+  try {
+    await Api.createTask({ title, description: description || null, priority, status: 'todo' });
+    toggleModal(false);
+    document.getElementById('task-form').reset();
+    toast('Task created', 'success');
+    await loadTasks();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function moveTask(id, status) {
+  try {
+    await Api.updateTask(id, { status });
+    await loadTasks();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function deleteTask(id) {
+  try {
+    await Api.deleteTask(id);
+    toast('Task deleted', 'success');
+    await loadTasks();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

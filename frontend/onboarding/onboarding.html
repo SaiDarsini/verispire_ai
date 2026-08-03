@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Workspace — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/onboarding.css">
+</head>
+<body>
+<div class="particles" id="onboard-particles"></div>
+
+<div class="onboard-shell">
+  <div class="onboard-topbar">
+    <div class="onboard-brand">
+      <div class="mark" style="width:34px;height:34px;border-radius:10px;background:var(--btn-gradient);display:flex;align-items:center;justify-content:center;color:#04140A;font-weight:800;">V</div>
+      <span style="font-weight:800;font-size:18px;color:var(--text-heading);">VICTORUS AI</span>
+    </div>
+    <div class="onboard-progress-label">
+      <span>Setting up your workspace</span>
+      <span>Step <span class="step-current" id="progress-current">1</span> of 6</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="onboard-progress-fill" style="width:16.6%"></div></div>
+  </div>
+
+  <div class="onboard-card glass-card fade-in">
+
+    <!-- STEP 1 — Who are you -->
+    <div class="onboard-step active" data-step="1" id="step-1">
+      <div class="step-icon">👋</div>
+      <h2>Who are you?</h2>
+      <p class="step-sub">This helps us tailor your AI workspace to how you work.</p>
+      <div class="option-grid">
+        <div class="option-card" data-value="Student"><span class="emoji">🎓</span>Student</div>
+        <div class="option-card" data-value="Software Engineer"><span class="emoji">💻</span>Software Engineer</div>
+        <div class="option-card" data-value="Freelancer"><span class="emoji">🧳</span>Freelancer</div>
+        <div class="option-card" data-value="Startup Founder"><span class="emoji">🚀</span>Startup Founder</div>
+        <div class="option-card" data-value="Business Owner"><span class="emoji">🏢</span>Business Owner</div>
+        <div class="option-card" data-value="Designer"><span class="emoji">🎨</span>Designer</div>
+        <div class="option-card" data-value="Digital Marketer"><span class="emoji">📣</span>Digital Marketer</div>
+        <div class="option-card" data-value="Content Creator"><span class="emoji">🎬</span>Content Creator</div>
+        <div class="option-card" data-value="Other"><span class="emoji">✨</span>Other</div>
+      </div>
+    </div>
+
+    <!-- STEP 2 — What should your AI help with -->
+    <div class="onboard-step" data-step="2" id="step-2">
+      <div class="step-icon">🧭</div>
+      <h2>What should your AI help you with?</h2>
+      <p class="step-sub">Select all that apply — you can change this later.</p>
+      <div class="chip-wrap">
+        <span class="chip" data-value="Coding">Coding</span>
+        <span class="chip" data-value="Marketing">Marketing</span>
+        <span class="chip" data-value="UI Design">UI Design</span>
+        <span class="chip" data-value="Research">Research</span>
+        <span class="chip" data-value="Writing">Writing</span>
+        <span class="chip" data-value="Automation">Automation</span>
+        <span class="chip" data-value="Finance">Finance</span>
+        <span class="chip" data-value="Business">Business</span>
+        <span class="chip" data-value="Learning">Learning</span>
+        <span class="chip" data-value="Career">Career</span>
+        <span class="chip" data-value="Personal Productivity">Personal Productivity</span>
+        <span class="chip" data-value="Resume Building">Resume Building</span>
+        <span class="chip" data-value="Interview Preparation">Interview Preparation</span>
+        <span class="chip" data-value="Sales">Sales</span>
+        <span class="chip" data-value="Customer Support">Customer Support</span>
+        <span class="chip" data-value="Legal">Legal</span>
+        <span class="chip" data-value="HR">HR</span>
+      </div>
+    </div>
+
+    <!-- STEP 3 — Skills autocomplete -->
+    <div class="onboard-step" data-step="3" id="step-3">
+      <div class="step-icon">🛠️</div>
+      <h2>What skills do you know?</h2>
+      <p class="step-sub">Start typing and pick from suggestions, or press Enter to add your own.</p>
+      <div class="skill-input-wrap">
+        <input type="text" id="skill-input" class="skill-search-input" placeholder="e.g. Python, Figma, SEO..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-heading);padding:13px 16px;border-radius:12px;font-size:14.5px;">
+        <div class="skill-suggestions" id="skill-suggestions"></div>
+      </div>
+      <div class="selected-skills" id="selected-skills"></div>
+    </div>
+
+    <!-- STEP 4 — AI familiarity -->
+    <div class="onboard-step" data-step="4" id="step-4">
+      <div class="step-icon">📊</div>
+      <h2>How familiar are you with AI?</h2>
+      <p class="step-sub">We'll adjust explanations and suggestions to match your level.</p>
+      <div class="familiarity-list">
+        <div class="familiarity-option" data-value="Beginner"><div><strong>Beginner</strong><span>I'm new to AI tools</span></div><div class="radio-dot"></div></div>
+        <div class="familiarity-option" data-value="Intermediate"><div><strong>Intermediate</strong><span>I use AI tools occasionally</span></div><div class="radio-dot"></div></div>
+        <div class="familiarity-option" data-value="Advanced"><div><strong>Advanced</strong><span>I use AI tools regularly in my work</span></div><div class="radio-dot"></div></div>
+        <div class="familiarity-option" data-value="Expert"><div><strong>Expert</strong><span>I build with or deeply understand AI</span></div><div class="radio-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- STEP 5 — Resume upload -->
+    <div class="onboard-step" data-step="5" id="step-5">
+      <div class="step-icon">📄</div>
+      <h2>Upload resume or certificates</h2>
+      <p class="step-sub">Optional — helps your AI agents give more relevant suggestions.</p>
+      <div class="dropzone" id="dropzone">
+        <div class="dz-icon">📤</div>
+        <p><strong>Click to upload</strong> or drag and drop</p>
+        <p style="margin-top:6px;">PDF, DOCX, PNG, or JPG</p>
+      </div>
+      <input type="file" id="resume-file-input" accept=".pdf,.docx,.png,.jpg,.jpeg" style="display:none;">
+      <div class="uploaded-file-row" id="uploaded-file-row" style="display:none;">
+        <span class="file-name">—</span>
+        <span class="file-status"></span>
+      </div>
+    </div>
+
+    <!-- STEP 6 — Review -->
+    <div class="onboard-step" data-step="6" id="step-6">
+      <div class="step-icon">✅</div>
+      <h2>Review your profile</h2>
+      <p class="step-sub">Make sure everything looks right before entering your workspace.</p>
+
+      <div class="review-section">
+        <h4>Who you are</h4>
+        <div class="review-value" id="review-occupation">—</div>
+      </div>
+      <div class="review-section">
+        <h4>AI will help with</h4>
+        <div class="review-value" id="review-interests">—</div>
+      </div>
+      <div class="review-section">
+        <h4>Skills</h4>
+        <div class="review-value" id="review-skills">—</div>
+      </div>
+      <div class="review-section">
+        <h4>AI familiarity</h4>
+        <div class="review-value" id="review-familiarity">—</div>
+      </div>
+      <div class="review-section">
+        <h4>Resume</h4>
+        <div class="review-value" id="review-resume">Not uploaded</div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="edit-btn" style="padding-left:0;">← Edit answers</button>
+    </div>
+
+    <div class="onboard-nav">
+      <button type="button" class="btn btn-ghost" id="back-btn">← Back</button>
+      <button type="button" class="btn btn-primary" id="next-btn">Continue</button>
+    </div>
+
+    <div class="step-dots">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>spawnParticles(document.getElementById('onboard-particles'), 20);</script>
+<script src="../assets/js/onboarding.js"></script>
+</body>
+</html>

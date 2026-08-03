@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log In — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-body">
+
+<div class="aurora-bg">
+  <div class="aurora-blob b1"></div>
+  <div class="aurora-blob b2"></div>
+  <div class="aurora-blob b3"></div>
+  <div class="aurora-grid"></div>
+  <div class="aurora-particles" id="aurora-particles"></div>
+</div>
+
+<div class="auth-layout">
+
+  <section class="auth-hero">
+    <a href="../index.html" class="auth-logo-float">
+      <img src="../assets/img/logo.png" alt="VICTORUS AI" class="auth-logo-img">
+      <span>VICTORUS AI</span>
+    </a>
+
+    <div class="hero-content">
+      <h1>Welcome back to your <span>AI workforce.</span></h1>
+      <p>Pick up right where you left off with your Developer, Marketing, Design, and Research agents.</p>
+
+      <div class="hero-features">
+        <div class="hero-feature">
+          <h3>Bank-grade security</h3>
+          <p>JWT sessions with full device visibility.</p>
+        </div>
+        <div class="hero-feature">
+          <h3>Instant workspace access</h3>
+          <p>Every agent, conversation, and file, one login away.</p>
+        </div>
+        <div class="hero-feature">
+          <h3>Personalized onboarding</h3>
+          <p>Your workspace adapts to your skills and goals.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-side">
+    <div class="auth-card">
+      <div class="auth-card-glow-border"></div>
+      <div class="auth-card-inner">
+        <div class="auth-card-head">
+          <h1>Welcome back</h1>
+          <p>Log in to continue managing your AI workforce.</p>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="field" id="field-email">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@company.com" required>
+            <div class="error-text">Enter a valid email address.</div>
+          </div>
+          <div class="field" id="field-password">
+            <label for="password">Password</label>
+            <div class="input-icon-wrap">
+              <input type="password" id="password" name="password" placeholder="••••••••" required>
+              <button type="button" class="toggle-pass" onclick="togglePasswordVisibility('password', this)">Show</button>
+            </div>
+            <div class="error-text">Password is required.</div>
+          </div>
+
+          <div class="auth-row">
+            <label class="checkbox-row"><input type="checkbox" id="remember-me" checked> Remember me</label>
+            <a href="forgot-password.html" class="auth-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-shine" id="login-btn">Log In</button>
+        </form>
+
+        <div class="auth-switch">Don't have a workspace? <a href="register.html" class="auth-link">Create one</a></div>
+      </div>
+    </div>
+
+    <a href="../index.html" class="auth-back-float">← Back to home</a>
+  </section>
+
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>
+  redirectIfAuthed();
+
+  (function spawnAuthParticles() {
+    const container = document.getElementById('aurora-particles');
+    if (!container) return;
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random() * 3;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDuration = `${12 + Math.random() * 16}s`;
+      p.style.animationDelay = `${Math.random() * 12}s`;
+      container.appendChild(p);
+    }
+  })();
+
+  const card = document.querySelector('.auth-card');
+  if (card && window.matchMedia('(hover: hover)').matches) {
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) scale(1.01)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    });
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const remember_me = document.getElementById('remember-me').checked;
+
+    let valid = true;
+    setFieldError(document.getElementById('field-email'), isValidEmail(email) ? '' : (valid = false, 'Enter a valid email address.'));
+    setFieldError(document.getElementById('field-password'), password ? '' : (valid = false, 'Password is required.'));
+    if (!valid) return;
+
+    const btn = document.getElementById('login-btn');
+    setButtonLoading(btn, true, 'Logging in...');
+    try {
+      const data = await Api.login({ email, password, remember_me });
+      saveAuthResult(data);
+      toast('Welcome back!', 'success');
+      postLoginRedirect(data.user);
+    } catch (err) {
+      toast(err.message, 'error');
+      setButtonLoading(btn, false);
+    }
+  });
+</script>
+</body>
+</html>

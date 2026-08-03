@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<style>
+  .memory-item {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 14px 4px; border-bottom: 1px solid var(--border);
+  }
+  .memory-item:last-child { border-bottom: none; }
+  .memory-item .content { flex: 1; font-size: 13.5px; color: var(--text-body); line-height: 1.55; }
+  .memory-item .meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .memory-item .actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .memory-item .actions button {
+    background: none; border: 1px solid var(--glass-border); color: var(--text-muted);
+    border-radius: 8px; padding: 5px 9px; font-size: 12px; cursor: pointer;
+    transition: all var(--t-fast) var(--ease);
+  }
+  .memory-item .actions button:hover { color: var(--text-heading); border-color: var(--accent); }
+  .memory-item .actions .delete-btn:hover { color: var(--error); border-color: var(--error); }
+  .add-memory-form { display: flex; gap: 10px; margin-bottom: 6px; }
+  .add-memory-form textarea {
+    flex: 1; resize: none; min-height: 42px; padding: 10px 12px; font-size: 13.5px;
+    background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px;
+    color: var(--text-heading);
+  }
+  .badge-source-manual { background: rgba(56,189,248,0.12); color: #38BDF8; }
+  .badge-source-chat { background: rgba(34,197,94,0.12); color: var(--accent); }
+  .badge-source-file { background: rgba(234,179,8,0.12); color: #EAB308; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>Memory</h2><p>What your AI workspace remembers about you and your work.</p></div>
+      </div>
+
+      <div class="glass-card card">
+        <div class="card-header"><h3>Add a memory</h3></div>
+        <div class="add-memory-form">
+          <textarea id="new-memory-input" placeholder="e.g. I prefer short, direct answers..."></textarea>
+          <button class="btn btn-primary" id="add-memory-btn">Save</button>
+        </div>
+      </div>
+
+      <div class="glass-card card">
+        <div class="card-header"><h3>Saved Memories</h3></div>
+        <div id="memory-list">
+          <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:60px;"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card card">
+          <div class="card-header"><h3>Profile Memory</h3></div>
+          <div id="memory-profile">
+            <div class="skeleton" style="height:100px;"></div>
+          </div>
+        </div>
+        <div class="glass-card card">
+          <div class="card-header"><h3>Skills Remembered</h3></div>
+          <div id="memory-skills"><div class="skeleton" style="height:100px;"></div></div>
+        </div>
+      </div>
+
+      <div class="glass-card card">
+        <div class="card-header"><h3>How Memory Works</h3></div>
+        <p style="font-size:13.5px;color:var(--text-body);line-height:1.7;">
+          VICTORUS AI saves durable facts about you three ways: automatically while you chat,
+          automatically from plain-text files you upload, and manually whenever you add one above.
+          Every AI agent checks this list before replying, so context carries across conversations
+          instead of resetting each time.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => {
+  const user = await initDashboardShell('Memory');
+  if (!user) return;
+
+  loadMemoryList();
+
+  document.getElementById('add-memory-btn').addEventListener('click', addMemory);
+  document.getElementById('new-memory-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addMemory(); }
+  });
+
+  try {
+    const profile = await Api.getProfile();
+    document.getElementById('memory-profile').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div><div style="font-size:11.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Occupation</div><div style="color:var(--text-heading);font-weight:600;">${escapeHtml(profile.occupation || 'Not set')}</div></div>
+        <div><div style="font-size:11.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">AI Familiarity</div><div style="color:var(--text-heading);font-weight:600;">${escapeHtml(profile.ai_familiarity || 'Not set')}</div></div>
+        <div><div style="font-size:11.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Interested In</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+            ${(profile.ai_interests || []).map(i => `<span class="badge badge-accent">${escapeHtml(i)}</span>`).join('') || '<span class="text-muted">None yet</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('memory-skills').innerHTML = (profile.skills && profile.skills.length)
+      ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${profile.skills.map(s => `<span class="badge badge-blue">${escapeHtml(s)}</span>`).join('')}</div>`
+      : `<div class="empty-state" style="padding:20px;"><div class="icon-wrap">🧠</div><h4>No skills stored yet</h4><p>Add skills from your Profile page.</p></div>`;
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+})();
+
+const SOURCE_LABELS = { manual: 'Manual', chat: 'From chat', file: 'From file' };
+
+async function loadMemoryList() {
+  try {
+    const items = await Api.listMemory();
+    const list = document.getElementById('memory-list');
+    if (items.length === 0) {
+      list.innerHTML = `<div class="empty-state" style="padding:20px;"><div class="icon-wrap">🧠</div><h4>No memories yet</h4><p>Chat, upload a text file, or add one above to get started.</p></div>`;
+      return;
+    }
+    list.innerHTML = items.map(m => `
+      <div class="memory-item" data-id="${m.id}">
+        <div style="flex:1;">
+          <div class="content" data-view>${escapeHtml(m.content)}</div>
+          <div class="meta">
+            <span class="badge badge-source-${m.source}">${SOURCE_LABELS[m.source] || m.source}</span>
+            ${m.source_label ? `<span style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(m.source_label)}</span>` : ''}
+          </div>
+        </div>
+        <div class="actions">
+          <button class="edit-btn">Edit</button>
+          <button class="delete-btn">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.memory-item').forEach(row => {
+      const id = row.dataset.id;
+      row.querySelector('.delete-btn').addEventListener('click', () => deleteMemory(id));
+      row.querySelector('.edit-btn').addEventListener('click', () => editMemory(id, row));
+    });
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function addMemory() {
+  const input = document.getElementById('new-memory-input');
+  const content = input.value.trim();
+  if (!content) return;
+  try {
+    await Api.createMemory({ content });
+    input.value = '';
+    loadMemoryList();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function deleteMemory(id) {
+  if (!confirm('Delete this memory?')) return;
+  try {
+    await Api.deleteMemory(id);
+    loadMemoryList();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+function editMemory(id, row) {
+  const viewEl = row.querySelector('[data-view]');
+  const current = viewEl.textContent;
+  viewEl.outerHTML = `
+    <textarea class="edit-textarea" style="width:100%;min-height:60px;padding:8px 10px;font-size:13.5px;
+      background:var(--card-bg);border:1px solid var(--accent);border-radius:8px;color:var(--text-heading);"
+    >${escapeHtml(current)}</textarea>
+  `;
+  const actions = row.querySelector('.actions');
+  actions.innerHTML = `<button class="save-btn">Save</button><button class="cancel-btn">Cancel</button>`;
+  actions.querySelector('.save-btn').addEventListener('click', async () => {
+    const newContent = row.querySelector('.edit-textarea').value.trim();
+    if (!newContent) return;
+    try {
+      await Api.updateMemory(id, { content: newContent });
+      loadMemoryList();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+  actions.querySelector('.cancel-btn').addEventListener('click', () => loadMemoryList());
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<link rel="stylesheet" href="../assets/css/onboarding.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>Profile</h2><p>Manage how your AI workspace understands you.</p></div>
+      </div>
+
+      <div class="glass-card card">
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;">
+          <div class="avatar" id="profile-avatar" style="width:64px;height:64px;font-size:20px;border-radius:16px;">--</div>
+          <div>
+            <button class="btn btn-outline btn-sm" id="change-avatar-btn">Change Avatar</button>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none;">
+          </div>
+        </div>
+
+        <form id="profile-form">
+          <div class="grid-2">
+            <div class="field"><label for="full_name">Full name</label><input type="text" id="full_name"></div>
+            <div class="field"><label for="phone">Phone</label><input type="text" id="phone" placeholder="+1 555 000 0000"></div>
+          </div>
+          <div class="field"><label for="bio">Bio</label><textarea id="bio" rows="3" placeholder="Tell your AI agents a bit about yourself..."></textarea></div>
+          <div class="field"><label for="occupation">Occupation</label>
+            <select id="occupation">
+              <option>Student</option><option>Software Engineer</option><option>Freelancer</option>
+              <option>Startup Founder</option><option>Business Owner</option><option>Designer</option>
+              <option>Digital Marketer</option><option>Content Creator</option><option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Skills</label>
+            <div class="skill-input-wrap">
+              <input type="text" id="skill-input" placeholder="Type a skill and press Enter...">
+              <div class="skill-suggestions" id="skill-suggestions"></div>
+            </div>
+            <div class="selected-skills" id="selected-skills"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+let profileSkills = [];
+
+(async () => {
+  const user = await initDashboardShell('Profile');
+  if (!user) return;
+
+  document.getElementById('profile-avatar').textContent = initials(user.full_name);
+  document.getElementById('full_name').value = user.full_name || '';
+  document.getElementById('phone').value = user.phone || '';
+
+  try {
+    const profile = await Api.getProfile();
+    document.getElementById('bio').value = profile.bio || '';
+    if (profile.occupation) document.getElementById('occupation').value = profile.occupation;
+    profileSkills = profile.skills || [];
+    renderSelectedSkills();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+
+  document.getElementById('change-avatar-btn').addEventListener('click', () => document.getElementById('avatar-input').click());
+  document.getElementById('avatar-input').addEventListener('change', uploadAvatar);
+  document.getElementById('profile-form').addEventListener('submit', saveProfile);
+
+  const skillInput = document.getElementById('skill-input');
+  let debounceTimer;
+  skillInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = skillInput.value.trim();
+    const box = document.getElementById('skill-suggestions');
+    if (!q) { box.classList.remove('show'); return; }
+    debounceTimer = setTimeout(async () => {
+      const matches = await Api.autocompleteSkills(q);
+      const filtered = matches.filter(m => !profileSkills.includes(m));
+      if (!filtered.length) { box.classList.remove('show'); return; }
+      box.innerHTML = filtered.map(m => `<div class="skill-suggestion-item" data-value="${escapeHtml(m)}">${escapeHtml(m)}</div>`).join('');
+      box.classList.add('show');
+      box.querySelectorAll('.skill-suggestion-item').forEach(item => {
+        item.addEventListener('click', () => { addProfileSkill(item.dataset.value); box.classList.remove('show'); });
+      });
+    }, 200);
+  });
+  skillInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && skillInput.value.trim()) { e.preventDefault(); addProfileSkill(skillInput.value.trim()); }
+  });
+})();
+
+function addProfileSkill(name) {
+  if (!profileSkills.includes(name)) profileSkills.push(name);
+  document.getElementById('skill-input').value = '';
+  renderSelectedSkills();
+}
+function removeProfileSkill(name) {
+  profileSkills = profileSkills.filter(s => s !== name);
+  renderSelectedSkills();
+}
+function renderSelectedSkills() {
+  document.getElementById('selected-skills').innerHTML = profileSkills.map(s => `
+    <span class="chip selected">${escapeHtml(s)} <span class="remove" onclick="removeProfileSkill('${s.replace(/'/g, "\\'")}')">✕</span></span>
+  `).join('');
+}
+
+async function uploadAvatar() {
+  const input = document.getElementById('avatar-input');
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await Api.uploadAvatar(formData);
+    toast('Avatar updated', 'success');
+    const user = Storage.user;
+    user.avatar_url = res.avatar_url;
+    Storage.user = user;
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-profile-btn');
+  setButtonLoading(btn, true, 'Saving...');
+  try {
+    await Api.updateProfile({
+      full_name: document.getElementById('full_name').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      bio: document.getElementById('bio').value.trim(),
+      occupation: document.getElementById('occupation').value,
+      skills: profileSkills,
+    });
+    toast('Profile updated', 'success');
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    setButtonLoading(btn, false);
+  }
+}
+</script>
+</body>
+</html>

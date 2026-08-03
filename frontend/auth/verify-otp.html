@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Your Email — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-body">
+
+<div class="aurora-bg">
+  <div class="aurora-blob b1"></div>
+  <div class="aurora-blob b2"></div>
+  <div class="aurora-blob b3"></div>
+  <div class="aurora-grid"></div>
+  <div class="aurora-particles" id="aurora-particles"></div>
+</div>
+
+<div class="auth-layout">
+
+  <section class="auth-hero">
+    <a href="../index.html" class="auth-logo-float">
+      <img src="../assets/img/logo.png" alt="VICTORUS AI" class="auth-logo-img">
+      <span>VICTORUS AI</span>
+    </a>
+
+    <div class="hero-content">
+      <h1>Almost <span>there.</span></h1>
+      <p>We've sent a 6-digit code to your email. Enter it to verify your account and unlock your workspace.</p>
+
+      <div class="hero-features">
+        <div class="hero-feature">
+          <h3>Check your inbox</h3>
+          <p>The code arrives within a few seconds of registering.</p>
+        </div>
+        <div class="hero-feature">
+          <h3>Expires in 10 minutes</h3>
+          <p>Didn't get it in time? You can resend a new one anytime.</p>
+        </div>
+        <div class="hero-feature">
+          <h3>One step from your dashboard</h3>
+          <p>Verify now and go straight into your AI workspace.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-side">
+    <div class="auth-card">
+      <div class="auth-card-glow-border"></div>
+      <div class="auth-card-inner" style="text-align:center;">
+        <div class="auth-card-head">
+          <h1>Verify your email</h1>
+          <p id="otp-sub">Enter the 6-digit code we sent to your email.</p>
+        </div>
+
+        <form id="otp-form" novalidate>
+          <div class="otp-row">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="0">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="1">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="2">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="3">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="4">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-digit" data-idx="5">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-shine" id="otp-btn">Verify Email</button>
+        </form>
+
+        <div class="auth-switch">Didn't get a code? <a href="#" class="auth-link" id="resend-link">Resend it</a></div>
+      </div>
+    </div>
+
+    <a href="login.html" class="auth-back-float">← Back to log in</a>
+  </section>
+
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script>
+  (function spawnAuthParticles() {
+    const container = document.getElementById('aurora-particles');
+    if (!container) return;
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = 2 + Math.random() * 3;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDuration = `${12 + Math.random() * 16}s`;
+      p.style.animationDelay = `${Math.random() * 12}s`;
+      container.appendChild(p);
+    }
+  })();
+
+  const card = document.querySelector('.auth-card');
+  if (card && window.matchMedia('(hover: hover)').matches) {
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) scale(1.01)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email') || Storage.user?.email || '';
+  document.getElementById('otp-sub').textContent = email
+    ? `Enter the 6-digit code sent to ${email}.`
+    : 'Enter the 6-digit code we sent to your email.';
+
+  const digits = Array.from(document.querySelectorAll('.otp-digit'));
+  digits.forEach((input, i) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '');
+      if (input.value && digits[i + 1]) digits[i + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && digits[i - 1]) digits[i - 1].focus();
+    });
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+      text.split('').forEach((ch, idx) => { if (digits[idx]) digits[idx].value = ch; });
+      digits[Math.min(text.length, 5)]?.focus();
+    });
+  });
+
+  document.getElementById('otp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = digits.map(d => d.value).join('');
+    if (code.length !== 6) { toast('Enter all 6 digits.', 'warning'); return; }
+    if (!email) { toast('Missing email context. Please register or log in again.', 'error'); return; }
+
+    const btn = document.getElementById('otp-btn');
+    setButtonLoading(btn, true, 'Verifying...');
+try {
+      const data = await Api.verifyOtp(email, code);
+      saveAuthResult(data);
+      toast('Email verified! Setting up your workspace...', 'success');
+      const user = data.user;
+      setTimeout(() => {
+        if (user && !user.has_completed_onboarding) window.location.href = '/onboarding/onboarding.html';
+        else window.location.href = '/dashboard/overview.html';
+      }, 1200);
+    } catch (err) {
+      toast(err.message, 'error');
+      setButtonLoading(btn, false);
+    }
+  });
+
+  document.getElementById('resend-link').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!email) { toast('Missing email context.', 'error'); return; }
+    try {
+      await Api.resendOtp(email);
+      toast('A new code has been sent.', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+</script>
+</body>
+</html>

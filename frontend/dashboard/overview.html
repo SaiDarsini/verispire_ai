@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% comment %} <link rel="stylesheet" href="../assets/css/design-system.css"> {% endcomment %}
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h2 id="welcome-heading">Welcome back</h2>
+          <p>Here's what's happening across your AI workspace.</p>
+        </div>
+        <a href="conversations.html" class="btn btn-primary">New Conversation</a>
+      </div>
+
+      <div class="card-header" style="margin-top:6px;">
+        <h3>Recommended for you</h3>
+      </div>
+      <div class="rec-grid" id="rec-grid">
+        <div class="skeleton" style="height:120px;"></div>
+        <div class="skeleton" style="height:120px;"></div>
+        <div class="skeleton" style="height:120px;"></div>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="glass-card stat-card"><div class="skeleton" style="height:70px;"></div></div>
+        <div class="glass-card stat-card"><div class="skeleton" style="height:70px;"></div></div>
+        <div class="glass-card stat-card"><div class="skeleton" style="height:70px;"></div></div>
+        <div class="glass-card stat-card"><div class="skeleton" style="height:70px;"></div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card card">
+          <div class="card-header">
+            <h3>Recent Conversations</h3>
+            <a href="conversations.html" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+          <div id="recent-conversations-list">
+            <div class="skeleton" style="height:48px;margin-bottom:10px;"></div>
+            <div class="skeleton" style="height:48px;margin-bottom:10px;"></div>
+            <div class="skeleton" style="height:48px;"></div>
+          </div>
+        </div>
+
+        <div class="glass-card card">
+          <div class="card-header"><h3>Your AI Workforce</h3></div>
+          <div id="agents-preview-list">
+            <div class="skeleton" style="height:48px;margin-bottom:10px;"></div>
+            <div class="skeleton" style="height:48px;margin-bottom:10px;"></div>
+            <div class="skeleton" style="height:48px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => {
+  const user = await initDashboardShell('Overview');
+  if (!user) return;
+
+  document.getElementById('welcome-heading').textContent = `Welcome back, ${user.full_name.split(' ')[0]}`;
+  loadRecommendations();
+
+  try {
+    const overview = await Api.overview();
+
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="glass-card stat-card">
+        <div class="stat-label">Conversations</div>
+        <div class="stat-value" data-count="${overview.stats.total_conversations}">0</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-label">Tasks Completed</div>
+        <div class="stat-value" data-count="${overview.stats.tasks_done}">0</div>
+        <div class="stat-sub">of ${overview.stats.total_tasks} total</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-label">Files Stored</div>
+        <div class="stat-value" data-count="${overview.stats.total_files}">0</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-label">Unread Notifications</div>
+        <div class="stat-value" data-count="${overview.stats.unread_notifications}">0</div>
+      </div>
+    `;
+    document.querySelectorAll('[data-count]').forEach(el => countUp(el, parseInt(el.dataset.count, 10)));
+
+    const convoList = document.getElementById('recent-conversations-list');
+    if (overview.recent_conversations.length === 0) {
+      convoList.innerHTML = `<div class="empty-state"><h4>No conversations yet</h4><p>Start chatting with an AI agent to see it here.</p></div>`;
+    } else {
+      convoList.innerHTML = overview.recent_conversations.map(c => `
+        <a href="conversations.html?id=${c.id}" class="list-row">
+          <span class="list-row-title">${escapeHtml(c.title)}</span>
+          <span class="list-row-meta">${timeAgo(c.updated_at)}</span>
+        </a>
+      `).join('');
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+
+  try {
+    const agents = await Api.listAgents();
+    const enabled = agents.filter(a => a.is_enabled).slice(0, 4);
+    const list = document.getElementById('agents-preview-list');
+    list.innerHTML = enabled.map(a => `
+      <div class="list-row">
+        <span class="list-row-title">${escapeHtml(a.name)}</span>
+        <span class="badge badge-accent">Active</span>
+      </div>
+    `).join('') || `<div class="empty-state"><h4>No agents enabled</h4><p>Visit the Agents page to enable your workforce.</p></div>`;
+  } catch { /* ignore */ }
+})();
+
+async function loadRecommendations() {
+  try {
+    const recs = await Api.recommendations();
+    const grid = document.getElementById('rec-grid');
+    grid.innerHTML = recs.map(r => `
+      <div class="glass-card rec-card" data-agent="${r.agent_key}" data-prompt="${escapeHtml(r.suggested_prompt)}">
+        <h4>${escapeHtml(r.name)}</h4>
+        <p>${escapeHtml(r.description)}</p>
+        <div class="reason">${escapeHtml(r.reason)}</div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.rec-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const agentKey = card.dataset.agent;
+        const prompt = card.dataset.prompt;
+        try {
+          const convo = await Api.createConversation({ title: 'New Conversation', agent_key: agentKey });
+          sessionStorage.setItem('prefillPrompt', prompt);
+          window.location.href = `conversations.html?id=${convo.id}`;
+        } catch (err) {
+          toast(err.message, 'error');
+        }
+      });
+    });
+  } catch (err) {
+    document.getElementById('rec-grid').innerHTML = '';
+  }
+}
+</script>
+</body>
+</html>

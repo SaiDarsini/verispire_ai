@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity Logs — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header"><div><h2>Activity Logs</h2><p>A history of security-relevant actions on your account.</p></div></div>
+
+      <div class="glass-card card" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Action</th><th>IP Address</th><th>When</th></tr></thead>
+          <tbody id="logs-tbody"><tr><td colspan="3"><div class="skeleton" style="height:20px;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+(async () => {
+  const user = await initDashboardShell('Activity Logs');
+  if (!user) return;
+  try {
+    const logs = await Api.activityLogs();
+    const tbody = document.getElementById('logs-tbody');
+    if (!logs.length) {
+      tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state"><div class="icon-wrap">📜</div><h4>No activity yet</h4></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = logs.map(l => `
+      <tr>
+        <td style="color:var(--text-heading);font-weight:600;">${escapeHtml(l.action)}</td>
+        <td>${escapeHtml(l.ip_address || '—')}</td>
+        <td>${timeAgo(l.created_at)}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+})();
+</script>
+</body>
+</html>

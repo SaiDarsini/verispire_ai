@@ -1,0 +1,208 @@
+/* ==========================================================================
+   VICTORUS AI — DASHBOARD LAYOUT
+   ========================================================================== */
+
+.app-shell { display: grid; grid-template-columns: 84px 1fr; min-height: 100vh; }
+
+/* ---------- Sidebar (icon rail) ---------- */
+.sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 40;
+}
+.sidebar-logo { display: flex; align-items: center; justify-content: center; padding-bottom: 24px; position: relative; }
+.sidebar-logo .mark {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--btn-gradient); display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #04140A; font-size: 17px;
+}
+
+.rail-nav { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.rail-link {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); position: relative;
+  transition: all var(--t-fast) var(--ease);
+}
+.rail-link svg { width: 21px; height: 21px; }
+.rail-link:hover { background: rgba(255,255,255,0.06); color: var(--text-heading); }
+.rail-link.active { background: rgba(34,197,94,0.12); color: var(--accent); }
+
+/* shared tooltip for logo + rail icons */
+.rail-link[data-tooltip]::after,
+.sidebar-logo[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%) translateX(-4px);
+  background: #17171F; color: var(--text-heading); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden;
+  transition: all var(--t-fast) var(--ease); z-index: 60; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.rail-link:hover::after, .sidebar-logo:hover::after {
+  opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0);
+}
+
+.sidebar-footer { margin-top: auto; padding-top: 14px; }
+.profile-trigger { position: relative; display: flex; align-items: center; justify-content: center; }
+.avatar {
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; cursor: pointer;
+  background: var(--btn-gradient); display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #04140A; overflow: hidden;
+  border: 2px solid transparent; transition: border-color var(--t-fast) var(--ease);
+}
+.profile-trigger:hover .avatar { border-color: var(--accent); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-lg { width: 44px; height: 44px; font-size: 15px; }
+.sidebar-user-name { color: var(--text-heading); font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.sidebar-user-email { color: var(--text-muted); font-size: 11.5px; }
+
+/* ---------- Profile hover flyout ---------- */
+.profile-flyout {
+  position: absolute; left: calc(100% + 14px); bottom: 0;
+  width: 250px; background: #14141F; border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  padding: 14px; z-index: 70;
+  opacity: 0; visibility: hidden; transform: translateX(-6px);
+  transition: all var(--t-fast) var(--ease);
+}
+.profile-trigger:hover .profile-flyout,
+.profile-flyout.force-open {
+  opacity: 1; visibility: visible; transform: translateX(0);
+}
+.profile-flyout-header { display: flex; align-items: center; gap: 10px; padding: 4px 6px 12px; }
+.profile-menu-links { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.profile-menu-link {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 10px; border-radius: 9px; color: var(--text-body); font-size: 13.5px; font-weight: 500;
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  transition: all var(--t-fast) var(--ease);
+}
+.profile-menu-link svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
+.profile-menu-link:hover { background: rgba(255,255,255,0.06); color: var(--text-heading); }
+.profile-menu-link.active { color: var(--accent); }
+.profile-menu-link .count {
+  margin-left: auto; background: var(--error); color: #fff; font-size: 10.5px;
+  font-weight: 700; padding: 1px 6px; border-radius: 999px;
+}
+.profile-menu-divider { height: 1px; background: var(--border); margin: 8px 2px; }
+.profile-menu-logout { color: var(--error); }
+.profile-menu-logout:hover { background: rgba(239,68,68,0.1); }
+
+/* ---------- Main / Navbar ---------- */
+.main-area { min-width: 0; }
+.topnav {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--bg-navbar); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px;
+}
+.topnav h1 { font-size: 19px; }
+.topnav-actions { display: flex; align-items: center; gap: 14px; }
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card-bg); border: 1px solid var(--glass-border);
+  color: var(--text-body); position: relative; transition: all var(--t-fast) var(--ease);
+}
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn:hover { color: var(--accent); border-color: rgba(34,197,94,0.35); transform: translateY(-1px); }
+.icon-btn .dot { position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--error); border: 2px solid var(--bg-primary); }
+
+.page-content { padding: 28px; max-width: 1320px; }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 26px; gap: 16px; flex-wrap: wrap; }
+.page-header h2 { font-size: 24px; margin-bottom: 4px; }
+.page-header p { color: var(--text-muted); font-size: 14px; }
+
+/* ---------- Stat cards (no icons) ---------- */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
+.stat-card { padding: 22px; }
+.stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+.stat-value { font-size: 32px; font-weight: 800; color: var(--text-heading); letter-spacing: -0.02em; line-height: 1; }
+.stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* ---------- Recommendation cards ---------- */
+.rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 18px 0 30px; }
+.rec-card {
+  padding: 20px; cursor: pointer; position: relative; overflow: hidden;
+  transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.rec-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--btn-gradient); opacity: 0; transition: opacity var(--t-fast) var(--ease);
+}
+.rec-card:hover { transform: translateY(-3px); border-color: rgba(34,197,94,0.35); }
+.rec-card:hover::before { opacity: 1; }
+.rec-card h4 { font-size: 15px; margin-bottom: 8px; }
+.rec-card p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+.rec-card .reason { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+@media (max-width: 900px) { .rec-grid { grid-template-columns: 1fr; } }
+
+/* ---------- List rows ---------- */
+.list-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 4px; border-bottom: 1px solid var(--border);
+  transition: background var(--t-fast) var(--ease);
+}
+.list-row:last-child { border-bottom: none; }
+a.list-row:hover { background: rgba(255,255,255,0.03); }
+.list-row-title { color: var(--text-heading); font-size: 13.5px; font-weight: 600; }
+.list-row-meta { color: var(--text-muted); font-size: 12px; }
+
+/* ---------- Dashboard-specific empty state (no icon box) ---------- */
+.page-content .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.page-content .empty-state h4 { color: var(--text-heading); margin-bottom: 6px; font-size: 15px; }
+.page-content .empty-state p { font-size: 13px; }
+
+/* ---------- Generic content card / table ---------- */
+.card { padding: 24px; margin-bottom: 20px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.card-header h3 { font-size: 16px; }
+
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text-body); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr { transition: background var(--t-fast) var(--ease); }
+.data-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+@media (max-width: 1024px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; left: -100px; width: 84px; transition: left var(--t) var(--ease); box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
+  .sidebar.open { left: 0; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .page-content { padding: 18px; }
+  .topnav { padding: 14px 18px; }
+}
+
+.mobile-menu-btn { display: none; }
+@media (max-width: 1024px) {
+  .mobile-menu-btn { display: flex; }
+}
+
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 35; }
+.sidebar-overlay.show { display: block; }
+
+/* ---------- History flyout ---------- */
+.history-trigger { position: relative; cursor: pointer; }
+.history-flyout {
+  left: calc(100% + 14px);
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--t-fast)
+}

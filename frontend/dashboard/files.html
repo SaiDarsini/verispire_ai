@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Files — VICTORUS AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+<style>
+  .files-toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .files-toolbar input, .files-toolbar select { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-heading); padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+  .files-toolbar input { flex: 1; min-width: 200px; }
+  .file-row-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(56,189,248,0.12); color: var(--accent-blue); display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-root"></div>
+  <div class="main-area">
+    <div id="topnav-root"></div>
+    <div class="page-content">
+      <div class="page-header">
+        <div><h2>Files</h2><p>Everything you and your agents have uploaded.</p></div>
+        <button class="btn btn-primary" id="upload-btn">+ Upload File</button>
+        <input type="file" id="file-input" style="display:none;">
+      </div>
+
+      <div class="files-toolbar">
+        <input type="text" id="search-input" placeholder="Search files...">
+        <select id="category-filter">
+          <option value="">All categories</option>
+          <option value="general">General</option>
+          <option value="resume">Resume</option>
+          <option value="avatar">Avatar</option>
+        </select>
+      </div>
+
+      <div class="glass-card card" style="padding:0;">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Category</th><th>Size</th><th>Uploaded</th><th></th></tr></thead>
+          <tbody id="files-tbody">
+            <tr><td colspan="5"><div class="skeleton" style="height:20px;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+let debounceTimer;
+
+(async () => {
+  const user = await initDashboardShell('Files');
+  if (!user) return;
+  await loadFiles();
+
+  document.getElementById('upload-btn').addEventListener('click', () => document.getElementById('file-input').click());
+  document.getElementById('file-input').addEventListener('change', uploadFile);
+  document.getElementById('search-input').addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(loadFiles, 300);
+  });
+  document.getElementById('category-filter').addEventListener('change', loadFiles);
+})();
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function loadFiles() {
+  const search = document.getElementById('search-input').value.trim();
+  const category = document.getElementById('category-filter').value;
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (category) params.set('category', category);
+
+  try {
+    const files = await Api.listFiles(`?${params.toString()}`);
+    const tbody = document.getElementById('files-tbody');
+    if (!files.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon-wrap">📁</div><h4>No files found</h4><p>Upload a file to get started.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = files.map(f => `
+      <tr>
+        <td><div style="display:flex;align-items:center;gap:10px;"><div class="file-row-icon">📄</div><span style="color:var(--text-heading);font-weight:600;">${escapeHtml(f.original_name)}</span></div></td>
+        <td><span class="badge badge-muted">${escapeHtml(f.category)}</span></td>
+        <td>${formatBytes(f.size_bytes)}</td>
+        <td>${timeAgo(f.created_at)}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" onclick="renameFilePrompt('${f.id}', '${f.original_name.replace(/'/g, "\\'")}')">Rename</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error)" onclick="deleteFileConfirm('${f.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function uploadFile() {
+  const input = document.getElementById('file-input');
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    await Api.uploadFile(formData);
+    toast('File uploaded', 'success');
+    input.value = '';
+    await loadFiles();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function renameFilePrompt(id, currentName) {
+  const newName = prompt('Rename file', currentName);
+  if (!newName || newName === currentName) return;
+  try {
+    await Api.renameFile(id, newName);
+    toast('File renamed', 'success');
+    await loadFiles();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function deleteFileConfirm(id) {
+  if (!confirm('Delete this file? This cannot be undone.')) return;
+  try {
+    await Api.deleteFile(id);
+    toast('File deleted', 'success');
+    await loadFiles();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
