@@ -1,5 +1,5 @@
 /**
- * VICTORUS AI — Dashboard Shell
+ * VeriSpire AI — Dashboard Shell
  * Injects the icon-rail sidebar + topnav into any dashboard page that
  * includes <div id="sidebar-root"></div> and <div id="topnav-root"></div>,
  * then wires up auth guard, mobile menu, logout, and live badges.
@@ -91,8 +91,8 @@ function buildSidebar(activePage, user) {
 
   return `
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo" data-tooltip="VICTORUS AI">
-        <div class="mark">V</div>
+      <div class="sidebar-logo" data-tooltip="VeriSpire AI">
+        <div class="mark">VS</div>
       </div>
       <nav class="rail-nav">${rail}</nav>
       <div class="sidebar-footer">

@@ -13,12 +13,12 @@ from email.mime.text import MIMEText
 
 from app.core.config import settings
 
-logger = logging.getLogger("victorus.email")
+logger = logging.getLogger("verispire.email")
 logging.basicConfig(level=logging.INFO)
 
 
 BRAND_COLOR = "#7C5CFF"
-BRAND_NAME = "VICTORUS AI"
+BRAND_NAME = "VeriSpire AI"
 
 
 def _wrap_html(title: str, heading: str, body_html: str) -> str:
@@ -33,7 +33,7 @@ def _wrap_html(title: str, heading: str, body_html: str) -> str:
             <tr>
               <td style="padding:32px 40px 0 40px;">
                 <div style="display:flex;align-items:center;gap:10px;">
-                  <span style="display:inline-block;width:32px;height:32px;border-radius:9px;background:{BRAND_COLOR};color:#fff;font-weight:700;text-align:center;line-height:32px;font-size:16px;">V</span>
+                  <span style="display:inline-block;width:32px;height:32px;border-radius:9px;background:{BRAND_COLOR};color:#fff;font-weight:700;text-align:center;line-height:32px;font-size:11px;">VS</span>
                   <span style="color:#fff;font-weight:700;font-size:16px;letter-spacing:0.5px;">{BRAND_NAME}</span>
                 </div>
               </td>

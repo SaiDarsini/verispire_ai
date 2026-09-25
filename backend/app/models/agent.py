@@ -8,7 +8,7 @@ from app.db.base_class import Base, TimestampMixin, UUIDMixin
 
 
 class Agent(UUIDMixin, TimestampMixin, Base):
-    """Catalog of AI agents available on the platform (Developer AI, Marketing AI, etc)."""
+    """Catalog of specialized VeriSpire reasoning and verification agents."""
 
     __tablename__ = "agents"
 
@@ -17,6 +17,7 @@ class Agent(UUIDMixin, TimestampMixin, Base):
     description: Mapped[str] = mapped_column(Text)
     icon: Mapped[str] = mapped_column(String(50), default="bot")
     category: Mapped[str] = mapped_column(String(50), default="general")
+    system_prompt: Mapped[str] = mapped_column(Text, default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 

@@ -1,5 +1,5 @@
 /**
- * VICTORUS AI — Shared UI helpers used across every page.
+ * VeriSpire AI — Shared UI helpers used across every page.
  */
 
 function toast(message, type = 'success') {

@@ -1,5 +1,5 @@
 /**
- * VICTORUS AI — Auth page behaviors shared across login/register/reset/otp.
+ * VeriSpire AI — Auth page behaviors shared across login/register/reset/otp.
  */
 
 function setFieldError(fieldEl, message) {

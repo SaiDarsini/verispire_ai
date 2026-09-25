@@ -71,31 +71,21 @@ def analytics(user: User = Depends(get_current_user), db: Session = Depends(get_
     }
 
 AGENT_KEYWORDS = {
-    "developer": ["software", "developer", "engineer", "programmer", "coding", "code",
-                  "python", "javascript", "backend", "frontend", "fullstack", "devops",
-                  "web development", "app development", "data engineer"],
-    "marketing": ["marketing", "growth", "seo", "content", "social media", "brand",
-                  "advertising", "copywriting", "campaign"],
-    "design": ["design", "ui", "ux", "graphic", "product design", "illustrator",
-               "figma", "visual"],
-    "research": ["research", "analyst", "data scientist", "scientist", "academic",
-                 "phd", "data analysis"],
-    "finance": ["finance", "accountant", "accounting", "investment", "banking",
-                "financial analyst", "budget"],
-    "hr": ["hr", "human resources", "recruiter", "talent", "people ops", "hiring"],
-    "legal": ["legal", "lawyer", "attorney", "paralegal", "compliance", "contract"],
-    "personal": [],
+    "logic_math": ["math", "proof", "algebra", "calculus", "logic", "theorem", "equation"],
+    "hallucination_auditor": ["fact", "research", "citation", "source", "claim", "audit"],
+    "sandbox_security": ["code", "python", "security", "algorithm", "unit test", "sandbox", "software"],
+    "architectural_planner": ["architecture", "system", "design", "distributed", "microservice", "planner"],
+    "rejection_watchdog": ["fallacy", "impossible", "reject", "premise", "ethics"],
+    "personal": ["verify", "reason", "agent", "orchestrat"],
 }
 
 AGENT_STARTER_PROMPTS = {
-    "developer": "Help me review this piece of code for bugs and best practices.",
-    "marketing": "Draft a launch campaign plan for a new product.",
-    "design": "Give me feedback on this UI layout and suggest improvements.",
-    "research": "Research the latest trends in [topic] and summarize the findings.",
-    "finance": "Help me build a simple monthly budget forecast.",
-    "hr": "Draft a job description for a role I'm hiring for.",
-    "legal": "Review this contract clause and flag anything risky.",
-    "personal": "Help me plan and prioritize my week.",
+    "personal": "Verify this claim step by step and show the audit trail.",
+    "logic_math": "Prove or disprove: the sum of the first n odd numbers equals n squared. Include executable Python.",
+    "hallucination_auditor": "Audit this paragraph for ungrounded claims and logical fallacies.",
+    "sandbox_security": "Write a Python function for binary search with unit tests the sandbox can run.",
+    "architectural_planner": "Break down a verifiable architecture for a multi-agent verification engine.",
+    "rejection_watchdog": "Stress-test this premise and reject it if it cannot be grounded.",
 }
 
 
@@ -120,7 +110,7 @@ def recommendations(user: User = Depends(get_current_user), db: Session = Depend
     scored.sort(key=lambda x: x[0], reverse=True)
     top = [a for score, a in scored if score > 0][:3]
     if not top:
-        fallback_keys = ["personal", "research", "developer"]
+        fallback_keys = ["personal", "logic_math", "sandbox_security"]
         top = [a for a in agents if a.key in fallback_keys]
 
     return [

@@ -1,5 +1,5 @@
 /**
- * VICTORUS AI — Onboarding Wizard
+ * VeriSpire AI — Onboarding Wizard
  * 6 steps: occupation -> interests -> skills -> familiarity -> resume -> review.
  */
 

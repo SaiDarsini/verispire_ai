@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Help — VICTORUS AI</title>
+<title>Help — VeriSpire AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/design-system.css">
 <link rel="stylesheet" href="../assets/css/dashboard.css">
@@ -12,7 +12,7 @@
   .help-faq-item:last-child { border-bottom: none; }
   .help-faq-q { display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--text-heading); font-size: 14px; }
   .help-faq-a { max-height: 0; overflow: hidden; transition: max-height var(--t-slow) var(--ease); color: var(--text-muted); font-size: 13.5px; }
-  .help-faq-item.open .help-faq-a { max-height: 200px; padding-top: 10px; }
+  .help-faq-item.open .help-faq-a { max-height: 420px; padding-top: 10px; }
 </style>
 </head>
 <body>
@@ -27,8 +27,8 @@
         <div class="glass-card card">
           <div class="card-header"><h3>Common Questions</h3></div>
           <div class="help-faq-item">
-            <div class="help-faq-q"><span>Why is the AI giving the same reply every time?</span><span>+</span></div>
-            <div class="help-faq-a">You're on VICTORUS AI Version 1 — the platform foundation. AI integration (Gemini) is coming in Version 2; today every message returns a placeholder reply.</div>
+            <div class="help-faq-q"><span>How does verification work?</span><span>+</span></div>
+            <div class="help-faq-a">Every chat turn runs Planner → Generator → a 5-second subprocess sandbox (when Python is present) → Independent Verifier. The collapsible audit trail shows PASS/FAIL/REJECT, confidence scores, hallucination risk, and execution traces.</div>
           </div>
           <div class="help-faq-item">
             <div class="help-faq-q"><span>How do I enable more agents?</span><span>+</span></div>

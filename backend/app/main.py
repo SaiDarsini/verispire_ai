@@ -1,8 +1,8 @@
 """
-VICTORUS AI — Backend Entry Point (Version 1)
+VeriSpire AI — Backend Entry Point
 
 Wires together every router, CORS, static file serving for uploads,
-and exposes interactive Swagger docs at /docs.
+auto-seeds verification agents in development, and exposes Swagger at /docs.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,15 +27,16 @@ from app.api.v1 import (
 from app.core.config import settings
 from app.db.base_class import Base
 from app.db.session import engine
+from app.models import *  # noqa: F401,F403 — populate metadata for create_all
 
 app = FastAPI(
     title=settings.APP_NAME,
     description=(
-        "VICTORUS AI Workforce Platform — Version 1 API. "
-        "AI responses are currently a placeholder (see app/services/ai_service.py); "
-        "Version 2 plugs a real model into that single file."
+        "VeriSpire AI — Multi-Agent Reasoning & Verification Engine. "
+        "Planner, generator, subprocess sandbox, and independent verifier "
+        "produce self-correcting audit trails (HackFusion Theme 8)."
     ),
-    version="1.0.0",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -49,7 +50,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve uploaded files (resumes, avatars, general uploads) statically.
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 API_PREFIX = settings.API_V1_PREFIX
@@ -73,10 +73,10 @@ app.include_router(memory.router, prefix=API_PREFIX)
 def root():
     return {
         "app": settings.APP_NAME,
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "running",
         "docs": "/docs",
-        "note": "AI integration is a dummy stub in Version 1. See app/services/ai_service.py.",
+        "engine": "OrchestratorEngine (planner → generator → sandbox → verifier)",
     }
 
 
@@ -87,7 +87,8 @@ def health():
 
 @app.on_event("startup")
 def on_startup():
-    # Dev convenience: auto-create tables if they don't exist yet.
-    # In production, rely on Alembic migrations instead (see alembic/).
     if settings.APP_ENV == "development":
         Base.metadata.create_all(bind=engine)
+        from app.seed import run as seed_agents
+
+        seed_agents()

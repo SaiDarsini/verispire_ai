@@ -1,5 +1,5 @@
 /* ========================================================================
-   VICTORUS AI — LANDING PAGE
+   VeriSpire AI — LANDING PAGE
    ======================================================================== */
 
 .navbar {
@@ -10,7 +10,7 @@
 }
 .navbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 1240px; margin: 0 auto; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--text-heading); }
-.brand .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--btn-gradient); display: flex; align-items: center; justify-content: center; color: #04140A; font-weight: 800; }
+.brand .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--btn-gradient); display: flex; align-items: center; justify-content: center; color: #04140A; font-weight: 800; font-size: 12px; letter-spacing: -0.04em; }
 .nav-links { display: flex; gap: 34px; }
 .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-body); transition: color var(--t-fast) var(--ease); }
 .nav-links a:hover { color: var(--accent); }

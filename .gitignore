@@ -8,6 +8,8 @@ __pycache__/
 
 # Environment
 .env
+backend/verispire.db
+*.db
 
 # VS Code
 .vscode/

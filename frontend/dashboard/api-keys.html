@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>API Keys — VICTORUS AI</title>
+<title>API Keys — VeriSpire AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/design-system.css">
 <link rel="stylesheet" href="../assets/css/dashboard.css">
@@ -15,7 +15,7 @@
     <div id="topnav-root"></div>
     <div class="page-content">
       <div class="page-header">
-        <div><h2>API Keys</h2><p>Use these keys to call the VICTORUS AI API programmatically.</p></div>
+        <div><h2>API Keys</h2><p>Use these keys to call the VeriSpire AI API programmatically.</p></div>
         <button class="btn btn-primary" id="new-key-btn">+ Generate Key</button>
       </div>
 
@@ -78,7 +78,7 @@ async function loadKeys() {
     const keys = await Api.listApiKeys();
     const tbody = document.getElementById('keys-tbody');
     if (!keys.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon-wrap">🔑</div><h4>No API keys yet</h4><p>Generate one to start calling the VICTORUS AI API.</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon-wrap">🔑</div><h4>No API keys yet</h4><p>Generate one to start calling the VeriSpire AI API.</p></div></td></tr>`;
       return;
     }
     tbody.innerHTML = keys.map(k => `

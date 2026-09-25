@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agents — VICTORUS AI</title>
+<title>Agents — VeriSpire AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/design-system.css">
 <link rel="stylesheet" href="../assets/css/dashboard.css">
@@ -25,7 +25,7 @@
     <div id="topnav-root"></div>
     <div class="page-content">
       <div class="page-header">
-        <div><h2>Your AI Workforce</h2><p>Enable the agents you want in your workspace.</p></div>
+        <div><h2>Verification Agents</h2><p>Enable the specialist verifiers you want in this workspace.</p></div>
       </div>
       <div class="agents-grid" id="agents-grid">
         <div class="skeleton" style="height:150px;"></div>
@@ -40,7 +40,7 @@
 <script src="../assets/js/ui.js"></script>
 <script src="../assets/js/layout.js"></script>
 <script>
-const AGENT_EMOJI = { developer: '💻', marketing: '📣', design: '🎨', research: '🔎', finance: '💰', hr: '🧑\u200d🤝\u200d🧑', legal: '⚖️', personal: '✨' };
+const AGENT_EMOJI = { personal: '✨', logic_math: '∑', hallucination_auditor: '🔎', sandbox_security: '🛡️', architectural_planner: '🗺️', rejection_watchdog: '⛔' };
 
 (async () => {
   const user = await initDashboardShell('Agents');
@@ -64,7 +64,7 @@ async function loadAgents() {
         </div>
         <h4 style="font-size:15.5px;color:var(--text-heading);margin-bottom:6px;">${escapeHtml(a.name)}</h4>
         <p style="font-size:13px;color:var(--text-muted);flex:1;margin-bottom:14px;">${escapeHtml(a.description)}</p>
-        <a href="conversations.html" class="btn btn-outline btn-sm btn-block">Chat with ${escapeHtml(a.name.split(' ')[0])}</a>
+        <a href="conversations.html?agent=${encodeURIComponent(a.key)}" class="btn btn-outline btn-sm btn-block">Verify with ${escapeHtml(a.name.split(' ')[0])}</a>
       </div>
     `).join('');
 

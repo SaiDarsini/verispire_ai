@@ -1,5 +1,5 @@
 /* ==========================================================================
-   VICTORUS AI — DASHBOARD LAYOUT
+   VeriSpire AI — DASHBOARD LAYOUT
    ========================================================================== */
 
 .app-shell { display: grid; grid-template-columns: 84px 1fr; min-height: 100vh; }
@@ -22,7 +22,7 @@
 .sidebar-logo .mark {
   width: 40px; height: 40px; border-radius: 12px;
   background: var(--btn-gradient); display: flex; align-items: center; justify-content: center;
-  font-weight: 800; color: #04140A; font-size: 17px;
+  font-weight: 800; color: #04140A; font-size: 13px; letter-spacing: -0.04em;
 }
 
 .rail-nav { display: flex; flex-direction: column; gap: 8px; align-items: center; }
