@@ -50,7 +50,7 @@ async function apiRequest(path, { method = 'GET', body, auth = true, isForm = fa
     res = await fetch(`${API_BASE}${path}`, opts);
   } catch (err) {
     console.error(`Network connection error to ${API_BASE}${path}:`, err);
-    throw new Error('Unable to reach VeriSpire backend on port 8000. Ensure the server is running.');
+    throw new Error('Unable to connect to VeriSpire backend. Make sure the server on port 8000 is active.');
   }
 
   // Auto-refresh once on 401
@@ -63,12 +63,18 @@ async function apiRequest(path, { method = 'GET', body, auth = true, isForm = fa
   }
 
   let data = null;
-  try { data = await res.json(); } catch { /* no JSON body */ }
+  try { 
+    data = await res.json(); 
+  } catch { 
+    data = null; 
+  }
 
   if (!res.ok) {
     let message = (data && (data.detail || data.message)) || `Request failed (${res.status})`;
     if (typeof message === 'object') {
-      message = Array.isArray(message) ? message.map(m => m.msg || JSON.stringify(m)).join(', ') : JSON.stringify(message);
+      message = Array.isArray(message) 
+        ? message.map(m => m.msg || JSON.stringify(m)).join(', ') 
+        : JSON.stringify(message);
     }
     throw new Error(message);
   }
@@ -95,7 +101,6 @@ async function tryRefresh() {
 const Api = {
   // Auth
   register: (payload) => {
-    // Normalizes input to match FastAPI Auth schema
     const formatted = {
       email: payload.email,
       password: payload.password,
