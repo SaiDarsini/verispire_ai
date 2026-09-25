@@ -4,10 +4,17 @@ All environment-driven values live here so the rest of the app
 never touches os.environ directly.
 """
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+CONFIG_FILE = Path(__file__).resolve()
+BACKEND_DIR = CONFIG_FILE.parent.parent.parent
+PROJECT_ROOT = BACKEND_DIR.parent
+ENV_FILES = (BACKEND_DIR / ".env", PROJECT_ROOT / ".env")
 
 
 class Settings(BaseSettings):
@@ -44,6 +51,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = "gemini"
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
+    GOOGLE_API_KEY: str = ""
     BACKEND_URL: str = "http://localhost:8000"
 
     # Verifier engine
@@ -51,7 +59,7 @@ class Settings(BaseSettings):
     SANDBOX_TIMEOUT_SECONDS: float = 5.0
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILES,
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,

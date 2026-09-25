@@ -5,6 +5,8 @@ Wires together every router, CORS, static file serving for uploads,
 auto-seeds verification agents in development, and exposes Swagger at /docs.
 """
 from contextlib import asynccontextmanager
+import os
+from fastapi.responses import RedirectResponse
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -66,24 +68,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Explicitly permit local origins across both port 5500 and standard development ports
-allowed_origins = [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
-
-if hasattr(settings, "cors_origins_list") and settings.cors_origins_list:
-    for origin in settings.cors_origins_list:
-        if origin not in allowed_origins:
-            allowed_origins.append(origin)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,6 +78,10 @@ app.add_middleware(
 
 # Serve uploaded files statically
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+app.mount("/dashboard", StaticFiles(directory=os.path.join(frontend_dir, "dashboard"), html=True), name="dashboard")
+app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
 # Mount API routers under versioned prefix
 API_PREFIX = settings.API_V1_PREFIX
@@ -110,15 +101,9 @@ app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(memory.router, prefix=API_PREFIX)
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "app": settings.APP_NAME,
-        "version": "2.0.0",
-        "status": "running",
-        "docs": "/docs",
-        "engine": "OrchestratorEngine (planner → generator → sandbox → verifier)",
-    }
+    return RedirectResponse(url="/dashboard/conversations.html", status_code=307)
 
 
 @app.get("/health", tags=["Root"])

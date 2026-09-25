@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from app.models.memory import MemoryItem
 from app.api.v1.memory import get_memory_context
@@ -6,6 +7,7 @@ from app.api.v1.memory import get_memory_context
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.conversation import Conversation, Message
+from app.models.activity_log import ActivityLog
 from app.models.profile import UserProfile
 from app.models.user import User
 from app.schemas.conversation import (
@@ -13,12 +15,46 @@ from app.schemas.conversation import (
     ConversationDetail,
     ConversationResponse,
     MessageCreate,
+    MessageDispatch,
     MessageResponse,
 )
 from app.services.ai_service import ai_service
 from app.services import build_service
+from app.services.verifier_engine.orchestrator import OrchestratorEngine
+from app.core.security import decode_token
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
+optional_bearer = HTTPBearer(auto_error=False)
+orchestrator = OrchestratorEngine()
+
+
+def _guest_user(db: Session) -> User:
+    user = db.query(User).filter(User.email == "guest@localhost").first()
+    if user:
+        return user
+    user = User(
+        full_name="Local Guest",
+        email="guest@localhost",
+        hashed_password="guest-local-only",
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def _optional_user(
+    credentials: HTTPAuthorizationCredentials | None,
+    db: Session,
+) -> User:
+    if credentials:
+        payload = decode_token(credentials.credentials)
+        if payload and payload.get("type") == "access":
+            user = db.get(User, payload.get("sub"))
+            if user and user.is_active:
+                return user
+    return _guest_user(db)
 
 
 @router.get("", response_model=list[ConversationResponse])
@@ -52,6 +88,66 @@ def get_conversation(
     if not convo:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return convo
+
+
+@router.post("/messages", status_code=status.HTTP_201_CREATED)
+async def dispatch_message(
+    payload: MessageDispatch,
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+    db: Session = Depends(get_db),
+):
+    """Dispatch one query through the verifier engine, with local guest fallback."""
+    user = _optional_user(credentials, db)
+    convo = None
+    if payload.conversation_id:
+        convo = db.query(Conversation).filter(
+            Conversation.id == payload.conversation_id,
+            Conversation.user_id == user.id,
+        ).first()
+        if not convo:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+    if convo is None:
+        convo = Conversation(
+            user_id=user.id,
+            title=payload.prompt[:80] or "Verification",
+            agent_key=payload.agent_key,
+        )
+        db.add(convo)
+        db.flush()
+
+    history = [{"role": message.role, "content": message.content} for message in convo.messages]
+    user_message = Message(conversation_id=convo.id, role="user", content=payload.prompt)
+    db.add(user_message)
+    result = await orchestrator.process_query(
+        payload.prompt,
+        agent_key=payload.agent_key,
+        history=history,
+    )
+    assistant_message = Message(
+        conversation_id=convo.id,
+        role="assistant",
+        content=result["content"],
+    )
+    db.add(assistant_message)
+    audit = result["audit"]
+    db.add(ActivityLog(
+        user_id=user.id,
+        action=(
+            f"verification agent={payload.agent_key} status={audit['status']} "
+            f"exit={audit['sandbox_exit_code']} latency_ms={audit['latency_ms']}"
+        ),
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    ))
+    db.commit()
+    db.refresh(assistant_message)
+    return {
+        "content": result["content"],
+        "audit": audit,
+        "conversation_id": str(convo.id),
+        "message_id": str(assistant_message.id),
+    }
 
 
 @router.delete("/{conversation_id}", status_code=204)

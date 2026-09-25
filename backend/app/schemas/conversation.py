@@ -10,6 +10,12 @@ class MessageCreate(BaseModel):
     content: str
 
 
+class MessageDispatch(BaseModel):
+    agent_key: str = "orchestrator"
+    prompt: str
+    conversation_id: Optional[uuid.UUID] = None
+
+
 class MessageResponse(BaseModel):
     id: uuid.UUID
     role: str

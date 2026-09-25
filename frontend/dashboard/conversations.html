@@ -1,424 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat — VeriSpire AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/design-system.css">
-<link rel="stylesheet" href="../assets/css/dashboard.css">
-<link rel="stylesheet" href="../assets/css/chat.css">
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #0b0f19;
-    color: #f1f5f9;
-  }
-  .app-shell {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-  }
-  .side-nav {
-    width: 72px;
-    background: #0f172a;
-    border-right: 1px solid #1e293b;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px 0;
-    gap: 24px;
-  }
-  .side-nav a {
-    color: #64748b;
-    text-decoration: none;
-    font-size: 1.25rem;
-    padding: 10px;
-    border-radius: 8px;
-    transition: all 0.2s;
-  }
-  .side-nav a.active, .side-nav a:hover {
-    color: #10b981;
-    background: #1e293b;
-  }
-  .main-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background: #0b0f19;
-  }
-  .top-bar {
-    height: 60px;
-    border-bottom: 1px solid #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    font-weight: 600;
-  }
-  .chat-shell {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-  }
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .chat-messages-inner {
-    max-width: 860px;
-    width: 100%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .empty-state {
-    text-align: center;
-    margin: auto;
-    color: #94a3b8;
-  }
-  .msg-row {
-    display: flex;
-    width: 100%;
-    margin-bottom: 12px;
-  }
-  .msg-row.user {
-    justify-content: flex-end;
-  }
-  .msg-row.assistant {
-    justify-content: flex-start;
-  }
-  .msg-bubble {
-    max-width: 80%;
-    padding: 14px 18px;
-    border-radius: 12px;
-    line-height: 1.5;
-    font-size: 0.95rem;
-  }
-  .msg-row.user .msg-bubble {
-    background: #2563eb;
-    color: #fff;
-    border-bottom-right-radius: 2px;
-  }
-  .msg-row.assistant .msg-bubble {
-    background: #1e293b;
-    color: #f1f5f9;
-    border: 1px solid #334155;
-    border-bottom-left-radius: 2px;
-  }
-  pre {
-    background: #020617;
-    padding: 12px;
-    border-radius: 8px;
-    overflow-x: auto;
-    border: 1px solid #1e293b;
-  }
-  code {
-    font-family: monospace;
-    color: #38bdf8;
-  }
-  .audit-card {
-    margin-top: 10px;
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid #10b981;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 0.85rem;
-  }
-  .audit-card.fail {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid #ef4444;
-  }
-  .audit-card.reject {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid #f59e0b;
-  }
-  .chat-input-bar {
-    padding: 16px 24px;
-    background: #0f172a;
-    border-top: 1px solid #1e293b;
-  }
-  .chat-input-inner {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    gap: 12px;
-    background: #1e293b;
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid #334155;
-  }
-  #chat-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 1rem;
-    font-family: inherit;
-    resize: none;
-    outline: none;
-  }
-  .send-fab {
-    background: #10b981;
-    color: #fff;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  .send-fab:disabled {
-    background: #334155;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Room | VeriSpire AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --canvas: #090d16; --ink: #f5f7fb; --muted: #8d9aae; --faint: #536175;
+      --line: rgba(255,255,255,.08); --glass: rgba(15,23,42,.65);
+      --cyan: #67e8f9; --mint: #34d399;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; overflow: hidden; color: var(--ink); font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--canvas);
+      background-image: radial-gradient(circle at 18% 12%, rgba(103,232,249,.10), transparent 26%), radial-gradient(circle at 82% 78%, rgba(168,85,247,.09), transparent 30%), linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: auto, auto, 48px 48px, 48px 48px;
+    }
+    button, select, textarea { font: inherit; }
+    .app-shell { display: flex; height: 100vh; min-height: 0; }
+    .side-nav { width: 76px; flex: 0 0 76px; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 0; border-right: 1px solid var(--line); background: rgba(7,11,20,.76); backdrop-filter: blur(18px); z-index: 2; }
+    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 24px; color: #051018; font-size: 12px; font-weight: 800; letter-spacing: -.06em; background: linear-gradient(135deg, var(--cyan), var(--mint)); border-radius: 12px; box-shadow: 0 0 28px rgba(52,211,153,.25); }
+    .side-nav a { width: 42px; height: 42px; display: grid; place-items: center; color: var(--faint); text-decoration: none; border: 1px solid transparent; border-radius: 12px; font-size: 17px; transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease; }
+    .side-nav a:hover, .side-nav a.active { color: var(--cyan); background: rgba(103,232,249,.08); border-color: rgba(103,232,249,.18); transform: translateY(-1px); }
+    .main-area { display: flex; min-width: 0; min-height: 0; flex: 1; flex-direction: column; }
+    .top-bar { height: 74px; flex: 0 0 74px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 clamp(20px,4vw,56px); border-bottom: 1px solid var(--line); background: rgba(9,13,22,.52); backdrop-filter: blur(18px); }
+    .room-title { display: flex; align-items: center; gap: 12px; min-width: 0; }.room-title strong { font-size: 14px; letter-spacing: -.02em; white-space: nowrap; }.room-title span { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .status-live { display: inline-flex; align-items: center; gap: 8px; color: var(--mint); font: 600 10px 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }.status-live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); }
+    .chat-shell { position: relative; display: flex; flex: 1; min-height: 0; flex-direction: column; }
+    .chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 42px 24px 180px; scroll-behavior: smooth; scrollbar-color: #263348 transparent; }.chat-messages-inner { width: min(920px,100%); margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .empty-state { width: min(650px,100%); margin: auto; padding: 52px 20px; text-align: center; }.empty-kicker { color: var(--cyan); font: 600 10px 'JetBrains Mono', monospace; letter-spacing: .16em; text-transform: uppercase; }.empty-state h1 { margin: 15px 0 12px; font-size: clamp(28px,4vw,46px); letter-spacing: -.06em; line-height: 1.05; }.empty-state p { max-width: 520px; margin: 0 auto; color: var(--muted); font-size: 14px; line-height: 1.8; }
+    .msg-row { display: flex; width: 100%; animation: nodeZoom .42s cubic-bezier(.2,.8,.2,1) both; }.msg-row.user { justify-content: flex-end; }.msg-row.assistant { justify-content: flex-start; }@keyframes nodeZoom { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .msg-stack { display: flex; width: min(790px,92%); flex-direction: column; gap: 10px; }.msg-row.user .msg-stack { align-items: flex-end; }
+    .msg-bubble { width: fit-content; max-width: 100%; padding: 17px 20px; overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: var(--glass); backdrop-filter: blur(16px); box-shadow: 0 18px 55px rgba(0,0,0,.22); font-size: 14px; line-height: 1.7; }.msg-row.user .msg-bubble { color: #e7fbff; background: linear-gradient(135deg, rgba(21,83,105,.72), rgba(15,55,75,.68)); border-color: rgba(103,232,249,.18); border-bottom-right-radius: 5px; }.msg-row.assistant .msg-bubble { border-bottom-left-radius: 5px; }
+    .msg-bubble p { margin: 0 0 10px; }.msg-bubble p:last-child { margin-bottom: 0; }.msg-bubble h2,.msg-bubble h3,.msg-bubble h4 { margin: 16px 0 8px; color: #fff; line-height: 1.3; }.msg-bubble h2 { font-size: 20px; }.msg-bubble h3 { font-size: 16px; }.msg-bubble h4 { font-size: 14px; }.msg-bubble ul,.msg-bubble ol { margin: 6px 0 12px; padding-left: 22px; }.msg-bubble li { margin: 4px 0; }.msg-bubble strong { color: #fff; }.msg-bubble a { color: var(--cyan); }.msg-bubble code { padding: 2px 6px; color: #a5f3fc; background: rgba(103,232,249,.08); border-radius: 5px; font: 500 12px 'JetBrains Mono', monospace; }.msg-bubble pre { margin: 12px 0; padding: 15px; overflow-x: auto; border: 1px solid rgba(103,232,249,.13); border-radius: 12px; background: rgba(2,6,23,.86); }.msg-bubble pre code { padding: 0; color: #d5e4ef; background: transparent; line-height: 1.6; }
+    .typing { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font: 500 11px 'JetBrains Mono', monospace; }.typing i { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); animation: pulse 1s infinite; }.typing i:nth-child(2) { animation-delay: .15s; }.typing i:nth-child(3) { animation-delay: .3s; }@keyframes pulse { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+    .verify-action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; color: var(--cyan); border: 1px solid rgba(103,232,249,.5); border-radius: 999px; background: rgba(103,232,249,.08); box-shadow: 0 0 22px rgba(103,232,249,.08); cursor: pointer; font-size: 11px; font-weight: 700; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }.verify-action-btn:hover { transform: translateY(-2px); background: rgba(103,232,249,.15); box-shadow: 0 0 28px rgba(103,232,249,.2); }
+    .audit-card { padding: 15px 17px; border: 1px solid var(--line); border-left: 3px solid var(--faint); border-radius: 13px; background: rgba(15,23,42,.58); backdrop-filter: blur(14px); }.audit-card.pass { border-color: rgba(16,185,129,.3); border-left-color: #10b981; }.audit-card.security { border-color: rgba(245,158,11,.3); border-left-color: #f59e0b; }.audit-card.reject { border-color: rgba(168,85,247,.3); border-left-color: #a855f7; }.audit-card.fail { border-color: rgba(239,68,68,.3); border-left-color: #ef4444; }
+    .verify-badge { display: inline-flex; padding: 4px 9px; border-radius: 999px; font: 700 10px 'JetBrains Mono', monospace; letter-spacing: .04em; }.verify-badge.pass { color: #6ee7b7; background: rgba(16,185,129,.14); }.verify-badge.security { color: #fcd34d; background: rgba(245,158,11,.14); }.verify-badge.reject { color: #d8b4fe; background: rgba(168,85,247,.14); }.verify-badge.fail { color: #fda4af; background: rgba(239,68,68,.14); }.telemetry-meta { margin-top: 9px; color: var(--muted); font: 500 11px 'JetBrains Mono', monospace; line-height: 1.7; }.telemetry-meta strong { color: #dce6f2; font-weight: 600; }.pipeline { color: var(--cyan); }
+    .chat-input-bar { position: absolute; right: 0; bottom: 0; left: 0; padding: 22px 24px 26px; background: linear-gradient(transparent,rgba(9,13,22,.92) 34%); pointer-events: none; }.input-dock { width: min(920px,100%); margin: 0 auto; pointer-events: auto; }.agent-selector { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin: 0 12px 9px; color: var(--faint); font: 500 10px 'JetBrains Mono', monospace; }#agent-selector { padding: 5px 9px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; outline: none; background: rgba(15,23,42,.7); font: 500 10px 'JetBrains Mono', monospace; }
+    .chat-input-inner { display: flex; align-items: flex-end; gap: 12px; padding: 9px 10px 9px 22px; border: 1px solid rgba(255,255,255,.13); border-radius: 100px; background: rgba(15,23,42,.78); backdrop-filter: blur(20px); box-shadow: 0 20px 60px rgba(0,0,0,.38); transition: border-color .2s ease, box-shadow .2s ease; }.chat-input-inner:focus-within { border-color: rgba(103,232,249,.6); box-shadow: 0 0 0 4px rgba(103,232,249,.08), 0 20px 60px rgba(0,0,0,.42); }#chat-input { width: 100%; max-height: 130px; padding: 9px 0; resize: none; outline: none; color: var(--ink); border: 0; background: transparent; font-size: 13px; line-height: 1.5; }#chat-input::placeholder { color: var(--faint); }.send-fab { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; color: #061119; border: 0; border-radius: 50%; background: linear-gradient(135deg,var(--cyan),var(--mint)); box-shadow: 0 0 22px rgba(52,211,153,.25); cursor: pointer; transition: transform .2s ease, opacity .2s ease; }.send-fab:hover:not(:disabled) { transform: scale(1.07) rotate(-4deg); }.send-fab:disabled { opacity: .3; cursor: not-allowed; }
+    @media (max-width:680px) { .side-nav { width: 56px; flex-basis: 56px; }.side-nav a { width: 36px; height: 36px; }.brand-mark { width: 32px; height: 32px; margin-bottom: 16px; }.top-bar { height: 62px; flex-basis: 62px; padding: 0 16px; }.room-title span { display: none; }.status-live { font-size: 9px; }.chat-messages { padding: 28px 14px 170px; }.msg-stack { width: 96%; }.msg-bubble { padding: 14px 15px; font-size: 13px; }.chat-input-bar { padding: 18px 12px; }.agent-selector { margin-right: 4px; }.chat-input-inner { padding-left: 16px; } }
+  </style>
 </head>
 <body>
-
-<div class="app-shell">
-  <div class="side-nav">
-    <div style="font-weight: 800; color: #10b981; margin-bottom: 12px;">VS</div>
-    <a href="overview.html" title="Overview">📊</a>
-    <a href="conversations.html" class="active" title="Chat">💬</a>
-    <a href="agents.html" title="Agents">🤖</a>
-    <a href="security.html" title="Security">🛡️</a>
+  <div class="app-shell">
+    <nav class="side-nav" aria-label="Primary navigation"><div class="brand-mark">VS</div><a href="overview.html" title="Overview">◈</a><a href="conversations.html" class="active" title="Conversations">◌</a><a href="agents.html" title="Agents">✦</a><a href="security.html" title="Security">⌁</a></nav>
+    <main class="main-area">
+      <header class="top-bar"><div class="room-title"><strong>VERISPIRE / CONVERSATION ROOM</strong><span>spatial reasoning canvas</span></div><div class="status-live">ENGINE ONLINE / 8000</div></header>
+      <section class="chat-shell">
+        <div class="chat-messages" id="chat-messages"><div class="chat-messages-inner" id="chat-messages-inner"><div class="empty-state" id="empty-state"><div class="empty-kicker">Verification workspace / 01</div><h1>Ask. Prove. Know.</h1><p>Every answer can become an auditable proof. Explore a question, then send it through the isolated sandbox when you are ready.</p></div></div></div>
+        <div class="chat-input-bar"><div class="input-dock"><div class="agent-selector"><label for="agent-selector">strategy</label><select id="agent-selector"><option value="orchestrator">Multi-Agent Orchestrator</option><option value="math">Math Specialist</option><option value="watchdog">Factuality Watchdog</option><option value="security">Security Auditor</option></select></div><div class="chat-input-inner"><textarea id="chat-input" rows="1" placeholder="Place a question on the canvas..."></textarea><button class="send-fab" id="send-btn" disabled aria-label="Send message"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg></button></div></div></div>
+      </section>
+    </main>
   </div>
-
-  <div class="main-area">
-    <div class="top-bar">
-      <span>🛡️ VeriSpire AI — Reasoning &amp; Sandbox Verifier</span>
-      <span style="font-size: 0.85rem; color: #10b981;">Engine Online (Port 8000)</span>
-    </div>
-
-    <div class="chat-shell">
-      <div class="chat-messages" id="chat-messages">
-        <div class="chat-messages-inner" id="chat-messages-inner">
-          <div class="empty-state" id="empty-state">
-            <h3>Ask VeriSpire</h3>
-            <p>Every response is decomposed by planner agents, tested in isolated Python sandboxes, and certified with audit trails.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="chat-input-bar">
-        <div class="chat-input-inner">
-          <textarea id="chat-input" rows="1" placeholder="Ask something VeriSpire should verify..."></textarea>
-          <button class="send-fab" id="send-btn" disabled>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  const inputEl = document.getElementById('chat-input');
-  const sendBtn = document.getElementById('send-btn');
-  const messagesInner = document.getElementById('chat-messages-inner');
-  const scrollContainer = document.getElementById('chat-messages');
-
-  inputEl.addEventListener('input', () => {
-    sendBtn.disabled = !inputEl.value.trim();
-  });
-
-  inputEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (inputEl.value.trim()) handleSendMessage();
+  <script>
+    const API_BASE = window.location.origin.includes(':8000') ? '' : 'http://127.0.0.1:8000';
+    const inputEl = document.getElementById('chat-input'); const sendBtn = document.getElementById('send-btn'); const agentSelector = document.getElementById('agent-selector'); const messagesInner = document.getElementById('chat-messages-inner'); const scrollContainer = document.getElementById('chat-messages');
+    inputEl.addEventListener('input', () => { sendBtn.disabled = !inputEl.value.trim(); inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 130) + 'px'; });
+    inputEl.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (inputEl.value.trim()) handleSendMessage(); } });
+    sendBtn.addEventListener('click', () => { if (inputEl.value.trim()) handleSendMessage(); });
+    messagesInner.addEventListener('click', (event) => { const button = event.target.closest('.verify-action-btn'); if (button) requestVerification(button.dataset.prompt || ''); });
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
+    function renderTelemetry(audit) { if (!audit) return ''; const status = String(audit.status || 'FAIL / REFUTED').toUpperCase(); const kind = status === 'PASS' ? 'pass' : status === 'SECURITY HALT' ? 'security' : status === 'REJECT / REFUSAL' ? 'reject' : 'fail'; const exitCode = audit.sandbox_exit_code === undefined || audit.sandbox_exit_code === null ? 'not run' : `exit ${escapeHtml(audit.sandbox_exit_code)}`; const stages = Array.isArray(audit.checks_run) && audit.checks_run.length ? audit.checks_run.join('  →  ') : 'planner  →  generator  →  verifier'; return `<div class="audit-card ${kind}"><span class="verify-badge ${kind}">${escapeHtml(status)}</span><div class="telemetry-meta"><strong>confidence</strong> ${Number(audit.confidence || 0).toFixed(2)} <span>·</span> <strong>sandbox</strong> ${exitCode} <span>·</span> <strong>latency</strong> ${escapeHtml(audit.latency_ms || 0)} ms</div><div class="telemetry-meta"><strong>pipeline</strong> <span class="pipeline">${escapeHtml(stages)}</span></div></div>`; }
+    function renderResponse(content, audit, originalPrompt) { const ranProof = audit && audit.sandbox_exit_code !== undefined && audit.sandbox_exit_code !== null; const canVerify = !ranProof && (!audit || audit.status !== 'REJECT / REFUSAL'); const verifyButton = canVerify ? `<button class="verify-action-btn" data-prompt="${escapeHtml(originalPrompt)}">🔬 Run Sandbox Verification &amp; Proof</button>` : ''; return `<div class="msg-stack"><div class="msg-bubble">${marked.parse(content || '')}</div>${verifyButton ? `<div>${verifyButton}</div>` : ''}${renderTelemetry(audit)}</div>`; }
+    async function handleSendMessage(overrideText = null) {
+      const text = overrideText || inputEl.value.trim(); if (!text) return; if (!overrideText) { inputEl.value = ''; inputEl.style.height = 'auto'; sendBtn.disabled = true; } document.getElementById('empty-state')?.remove(); messagesInner.insertAdjacentHTML('beforeend', `<div class="msg-row user"><div class="msg-stack"><div class="msg-bubble">${escapeHtml(text)}</div></div></div>`); const typingId = `typing-${Date.now()}`; messagesInner.insertAdjacentHTML('beforeend', `<div class="msg-row assistant" id="${typingId}"><div class="msg-stack"><div class="msg-bubble"><span class="typing">ORCHESTRATOR THINKING <i></i><i></i><i></i></span></div></div></div>`); scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      let answered = false;
+      try {
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token') || ''; let convId = localStorage.getItem('active_conv_id');
+        if (!convId) { const createRes = await fetch(`${API_BASE}/api/v1/conversations/`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }, body: JSON.stringify({ title: text.slice(0, 32), agent_key: agentSelector.value }) }); if (createRes.ok) { const conv = await createRes.json(); convId = conv.id; localStorage.setItem('active_conv_id', convId); } }
+        const response = await fetch(`${API_BASE}/api/v1/conversations/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }, body: JSON.stringify({ agent_key: agentSelector.value, prompt: text, conversation_id: convId || null }) }); document.getElementById(typingId)?.remove();
+        if (response.ok) { const data = await response.json(); const content = data.content || data.reply || data.message; if (content) { messagesInner.insertAdjacentHTML('beforeend', `<div class="msg-row assistant">${renderResponse(content, data.audit, text)}</div>`); answered = true; } }
+      } catch (error) { console.warn('[VeriSpire] Error:', error); }
+      if (!answered) { document.getElementById(typingId)?.remove(); messagesInner.insertAdjacentHTML('beforeend', `<div class="msg-row assistant"><div class="msg-stack"><div class="msg-bubble" style="border-color:rgba(239,68,68,.35);color:#fda4af">Verification service unavailable. Ensure the backend is running on port 8000.</div></div></div>`); } inputEl.focus(); scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
-  });
-
-  sendBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (inputEl.value.trim()) handleSendMessage();
-  });
-
-  async function handleSendMessage() {
-    const text = inputEl.value.trim();
-    if (!text) return;
-
-    inputEl.value = '';
-    sendBtn.disabled = true;
-
-    const empty = document.getElementById('empty-state');
-    if (empty) empty.remove();
-
-    // 1. Render User Message
-    const userRow = document.createElement('div');
-    userRow.className = 'msg-row user';
-    userRow.innerHTML = `<div class="msg-bubble">${escapeHtml(text)}</div>`;
-    messagesInner.appendChild(userRow);
-
-    // 2. Render Thinking Status
-    const botRow = document.createElement('div');
-    botRow.className = 'msg-row assistant';
-    botRow.innerHTML = `
-      <div class="msg-bubble" style="color: #94a3b8;">
-        ⚙️ Orchestrator reasoning: Planner → Generator → Python Sandbox Execution → Verifier...
-      </div>`;
-    messagesInner.appendChild(botRow);
-    scrollContainer.scrollTop = scrollContainer.scrollHeight;
-
-    // 3. Attempt Live Dispatch to Backend
-    let answered = false;
-    try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('token') || '';
-      let convId = localStorage.getItem('active_conv_id');
-
-      if (!convId) {
-        const createRes = await fetch('http://127.0.0.1:8000/api/v1/conversations/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify({ title: text.slice(0, 32), agent_key: 'math' })
-        });
-        if (createRes.ok) {
-          const conv = await createRes.json();
-          convId = conv.id;
-          localStorage.setItem('active_conv_id', convId);
-        }
-      }
-
-      const postUrl = convId
-        ? `http://127.0.0.1:8000/api/v1/conversations/${convId}/messages`
-        : 'http://127.0.0.1:8000/api/v1/conversations/messages';
-
-      const response = await fetch(postUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ content: text })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.content || data.reply || data.message;
-        if (content) {
-          botRow.innerHTML = `<div class="msg-bubble">${content.replace(/\n/g, '<br>')}</div>`;
-          answered = true;
-        }
-      }
-    } catch (e) {
-      console.warn('[VeriSpire] Local sandbox execution active:', e);
-    }
-
-    // 4. Dynamic Verification Sandbox Fallback (if backend endpoint structure differs)
-    if (!answered) {
-      botRow.innerHTML = `<div class="msg-bubble">${generateDeterministicVerification(text)}</div>`;
-    }
-
-    scrollContainer.scrollTop = scrollContainer.scrollHeight;
-    inputEl.focus();
-  }
-
-  function generateDeterministicVerification(prompt) {
-    const p = prompt.toLowerCase();
-
-    // Check 1: Fibonacci 50 modulo 1000
-    if (p.includes('fibonacci') || p.includes('f_{50}') || p.includes('f_50')) {
-      return `
-        <p><strong>Verification complete: Claim is FALSE.</strong> The 50th Fibonacci number is <strong>12,586,269,025</strong>. Its residue modulo 1000 is <strong>25</strong>, not <strong>775</strong>.</p>
-        <pre><code>def fibonacci(n):
-    a, b = 0, 1
-    for _ in range(n):
-        a, b = b, a + b
-    return a
-
-f50 = fibonacci(50)
-mod1000 = f50 % 1000
-print(f"F_50 = {f50}")
-print(f"F_50 % 1000 = {mod1000}")
-assert mod1000 == 775, f"Expected 775, got {mod1000}"</code></pre>
-        <div class="audit-card fail">
-          <strong style="color:#ef4444;">🛡️ VeriSpire Verification Audit Trail</strong><br>
-          • Verifier Status: <strong>FAIL / REFUTED</strong><br>
-          • Confidence Matrix: <strong>99.9%</strong><br>
-          • Sandbox Telemetry: <strong>AssertionError: Expected 775, got 25 (Exit Code 1, 0.03s)</strong><br>
-          • Hallucination Risk: <strong>Refuted Premise Detected</strong>
-        </div>`;
-    }
-
-    // Check 2: Python 4.2 Hallucination refusal
-    if (p.includes('python 4') || p.includes('4.2') || p.includes('gil removal')) {
-      return `
-        <p><strong>Refusal to hallucinate:</strong> Python 4.2 does not exist. CPython's free-threading project (PEP 703) landed in Python 3.13t, not Python 4.2. Guido van Rossum has explicitly stated that Python 4 will likely never happen.</p>
-        <div class="audit-card reject">
-          <strong style="color:#f59e0b;">🛡️ VeriSpire Verification Audit Trail</strong><br>
-          • Verifier Status: <strong>REJECT / REFUSAL</strong><br>
-          • Confidence Score: <strong>1.00</strong><br>
-          • Watchdog Trigger: <strong>Fictional / Counterfactual entity detected (Python 4.2)</strong><br>
-          • Action: <strong>Explicit grounding failure triggered. Hallucinated generation blocked.</strong>
-        </div>`;
-    }
-
-    // Check 3: Infinite loop / filesystem sandbox exploit
-    if (p.includes('.env') || p.includes('infinite') || p.includes('while true')) {
-      return `
-        <p><strong>Security sandbox boundary triggered:</strong> Code execution rejected. Restricted filesystem operations and non-terminating loops are halted by subprocess isolation.</p>
-        <div class="audit-card fail">
-          <strong style="color:#ef4444;">🛡️ VeriSpire Verification Audit Trail</strong><br>
-          • Verifier Status: <strong>SECURITY HALT</strong><br>
-          • Sandboxed Subprocess: <strong>Terminated (SIGKILL after 5.00s timeout)</strong><br>
-          • Policy Violation: <strong>Restricted system resources / File access violation</strong>
-        </div>`;
-    }
-
-    // Check 4: Deterministic Prime Check
-    if (p.includes('prime') || p.includes('104729')) {
-      return `
-        <p><strong>104729 is confirmed prime.</strong> Divisibility checks were executed against all prime candidates up to &lfloor;&radic;104729&rfloor; = 323. Zero divisors found.</p>
-        <pre><code>def is_prime(n):
-    if n <= 1: return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0: return False
-    return True
-
-print(is_prime(104729))  # Output: True</code></pre>
-        <div class="audit-card">
-          <strong style="color:#10b981;">🛡️ VeriSpire Verification Audit Trail</strong><br>
-          • Verifier Status: <strong>PASS</strong><br>
-          • Confidence Matrix: <strong>99.8%</strong><br>
-          • Sandbox Execution: <strong>PASSED (Exit 0, 0.04s)</strong><br>
-          • Hallucination Risk: <strong>Low (Deterministic)</strong>
-        </div>`;
-    }
-
-    // General fallback
-    return `
-      <p>Verification engine executed isolated subprocess analysis for query: <em>"${escapeHtml(prompt)}"</em>.</p>
-      <div class="audit-card">
-        <strong style="color:#10b981;">🛡️ VeriSpire Verification Audit Trail</strong><br>
-        • Verifier Status: <strong>VERIFIED</strong><br>
-        • Subprocess Check: <strong>PASSED (Exit 0, 0.05s)</strong><br>
-        • Engine: <strong>Planner → Generator → Subprocess Sandbox → Independent Verifier</strong>
-      </div>`;
-  }
-
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (m) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[m]));
-  }
-</script>
+    function requestVerification(originalPrompt) { handleSendMessage(`Prove and verify: ${originalPrompt}`); }
+  </script>
 </body>
 </html>

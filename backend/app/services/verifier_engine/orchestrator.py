@@ -2,12 +2,13 @@
 Iterative multi-agent loop: Planner → Generator → Sandbox → Independent Verifier.
 
 Retries inject verifier critique back into the generator. Exhausted retries or
-explicit REJECT produce an honest rejection. The returned payload always includes
-a hallucination-risk confidence matrix and execution latency telemetry.
+explicit REJECT produce a clear, human-readable rejection. The returned payload
+always includes a hallucination-risk confidence matrix and execution latency telemetry.
 """
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any, Dict, List, Optional
 
@@ -19,21 +20,10 @@ from app.services.verifier_engine.agents import (
 )
 from app.services.verifier_engine.sandbox import execute_extracted_python
 
-HONEST_REJECTION_TEMPLATE = """## Honest Rejection
+HONEST_REJECTION_TEMPLATE = """I cannot verify this request because {reason}
 
-**Status:** REJECT
-
-VeriSpire AI will not fabricate a grounded answer for this request.
-
-**Why it was rejected**
-{reason}
-
-**What would make this verifiable**
+**Suggested Adjustment:**
 {fixes}
-
-The independent verifier and specialist agents could not certify the claims against
-deterministic checks, stated premises, or sandbox execution. No speculative answer
-is better than a confident hallucination.
 """
 
 
@@ -145,12 +135,12 @@ def _audit_markdown(audit: Dict[str, Any]) -> str:
         "| Stage | Status | Detail | Latency |\n|---|---|---|---|\n"
         + "\n".join(trace_rows)
         + "\n\n### Sandbox telemetry\n\n"
-        "| Run | Status | Exit | Duration | Error |\n|---|---|---|---|---|\n"
+        + "| Run | Status | Exit | Duration | Error |\n|---|---|---|---|---|\n"
         + "\n".join(sandbox_rows)
         + "\n\n"
-        f"**Verifier critique:** {audit.get('critique', '')}\n\n"
-        "</details>\n"
-        f"\n```json\n{json.dumps(audit, default=str, indent=2)[:12000]}\n```\n"
+        + f"**Verifier critique:** {audit.get('critique', '')}\n\n"
+        + "</details>\n"
+        + f"\n```json\n{json.dumps(audit, default=str, indent=2)[:12000]}\n```\n"
     )
 
 
@@ -164,7 +154,7 @@ class OrchestratorEngine:
         self,
         message: str,
         history: Optional[List[dict]] = None,
-        agent_key: str = "personal",
+        agent_key: str = "orchestrator",
         user_context: Optional[dict] = None,
     ) -> str:
         started = time.perf_counter()
@@ -195,10 +185,10 @@ class OrchestratorEngine:
         )
 
         if plan.get("rejection_recommended"):
-            reason = plan.get("rejection_reason") or "The planner judged the request ungrounded or impossible."
+            reason = plan.get("rejection_reason") or "The request contains invalid premises or ungrounded assumptions."
             answer = HONEST_REJECTION_TEMPLATE.format(
                 reason=reason,
-                fixes="- Provide evidence, constraints, or a well-posed question the engine can verify.",
+                fixes="- Provide verifiable premises, valid release versions, or specific constraints.",
             )
             verification = {
                 "status": "REJECT",
@@ -233,7 +223,7 @@ class OrchestratorEngine:
                     }
                 )
                 if not generated:
-                    verifier_feedback = "Generator returned an empty response. Produce a complete, grounded answer."
+                    verifier_feedback = "Generator returned an empty response. Produce a concise, grounded answer."
                     continue
 
                 t_sbx = time.perf_counter()
@@ -270,9 +260,7 @@ class OrchestratorEngine:
                 )
 
                 answer = generated
-                if verification.get("status") == "PASS":
-                    break
-                if verification.get("status") == "REJECT":
+                if verification.get("status") in ("PASS", "REJECT"):
                     break
 
                 fixes = verification.get("suggested_fixes") or []
@@ -289,19 +277,27 @@ class OrchestratorEngine:
 
             if verification.get("status") != "PASS":
                 fixes = verification.get("suggested_fixes") or []
-                fix_text = "\n".join(f"- {f}" for f in fixes) or "- Supply checkable premises, data, or a narrower question."
+                fix_text = "\n".join(f"- {f}" for f in fixes) or "- Supply checkable premises or a narrower problem."
                 if verification.get("status") == "REJECT" or not answer:
                     answer = HONEST_REJECTION_TEMPLATE.format(
-                        reason=verification.get("critique") or "Verification criteria were not met.",
+                        reason=verification.get("critique") or "The requested claims could not be certified.",
                         fixes=fix_text,
                     )
                     verification["status"] = "REJECT"
                 else:
                     answer = (
                         answer.rstrip()
-                        + "\n\n> **Verifier note:** This draft did not fully pass independent verification. "
-                        + str(verification.get("critique") or "Treat numeric and factual claims with caution.")
+                        + "\n\n> **Verification Notice:** "
+                        + str(verification.get("critique") or "Execution outputs could not certify this answer with 100% confidence.")
                     )
+
+        if any(run.get("security_halt") or run.get("timed_out") for run in sandbox_runs):
+            verification.update({
+                "status": "SECURITY HALT",
+                "passed": False,
+                "confidence": 1.0,
+                "critique": "Subprocess sandbox halted execution due to timeout or restricted operation.",
+            })
 
         total_ms = round((time.perf_counter() - started) * 1000, 2)
         matrix = _build_confidence_matrix(plan, verification, sandbox_runs)
@@ -334,3 +330,62 @@ class OrchestratorEngine:
             ],
         }
         return answer.rstrip() + _audit_markdown(audit)
+
+    async def process_query(
+        self,
+        prompt: str,
+        *,
+        agent_key: str = "orchestrator",
+        history: Optional[List[dict]] = None,
+        user_context: Optional[dict] = None,
+    ) -> Dict[str, Any]:
+        """Run the pipeline and expose the stable API response contract."""
+        raw = await self.run(
+            prompt,
+            history=history,
+            agent_key=agent_key,
+            user_context=user_context,
+        )
+        marker = "<!--VERISPIRE_AUDIT-->"
+        content, audit_text = (raw.split(marker, 1) + [""])[:2] if marker in raw else (raw, "")
+        audit_data: Dict[str, Any] = {}
+        if "```json" in audit_text:
+            try:
+                audit_data = json.loads(audit_text.split("```json", 1)[1].split("```", 1)[0].strip())
+            except (ValueError, IndexError):
+                audit_data = {}
+
+        raw_status = str(audit_data.get("final_status") or "FAIL").upper()
+        critique_text = str(audit_data.get("critique") or "").upper()
+        runs = audit_data.get("sandbox_runs") or []
+
+        if (
+            "SECURITY" in raw_status
+            or "HALT" in raw_status
+            or "TIMEOUT" in critique_text
+            or any(r.get("timed_out") or r.get("security_halt") for r in runs)
+        ):
+            status = "SECURITY HALT"
+        elif "REJECT" in raw_status:
+            status = "REJECT / REFUSAL"
+        elif "PASS" in raw_status:
+            status = "PASS"
+        else:
+            status = "FAIL / REFUTED"
+
+        first_run = runs[0] if runs else {}
+        matrix = audit_data.get("confidence_matrix") or {}
+        cleaned_content = re.sub(r"###FILE:[^#]*###", "", content)
+        cleaned_content = cleaned_content.replace("###END###", "").strip()
+
+        return {
+            "content": cleaned_content,
+            "audit": {
+                "status": status,
+                "confidence": float(matrix.get("composite_confidence", 0.0)),
+                "hallucination_risk": str(audit_data.get("hallucination_risk", matrix.get("hallucination_risk", "unknown"))),
+                "sandbox_exit_code": first_run.get("exit_code"),
+                "latency_ms": int(audit_data.get("total_latency_ms", 0)),
+                "checks_run": [trace.get("stage", "") for trace in audit_data.get("execution_traces", [])],
+            },
+        }

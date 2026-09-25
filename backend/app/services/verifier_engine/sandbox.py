@@ -22,6 +22,14 @@ DEFAULT_TIMEOUT = float(getattr(settings, "SANDBOX_TIMEOUT_SECONDS", 5.0) or 5.0
 
 _RESTRICTED_ENV_KEYS = ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "HOME", "USERPROFILE")
 
+_SECURITY_PATTERNS = (
+    r"\bwhile\s+True\b",
+    r"\bfor\s+\w+\s+in\s+iter\(.*None",
+    r"(?:os|pathlib|shutil)\.(?:remove|unlink|rmtree|system|popen|fork)\b",
+    r"(?:rm\s+-rf|del\s+/[sq]|format\s+[a-z]:)",
+    r"open\s*\([^\n]*(?:\.env|/etc/|\\windows\\|\\system32)",
+)
+
 
 def _restricted_env() -> Dict[str, str]:
     env = {key: os.environ.get(key, "") for key in _RESTRICTED_ENV_KEYS if os.environ.get(key)}
@@ -59,36 +67,56 @@ def execute_python(
         "ok": False,
         "error": None,
         "duration_ms": 0.0,
+        "latency_ms": 0,
         "bytes_stdout": 0,
         "bytes_stderr": 0,
         "workdir": str(tmp_dir),
     }
 
+    import re
+
+    if any(re.search(pattern, code, re.IGNORECASE) for pattern in _SECURITY_PATTERNS):
+        result.update({
+            "security_halt": True,
+            "error": "SECURITY HALT: code rejected by sandbox pre-screen",
+            "stderr": "SECURITY HALT: hostile loop or destructive filesystem operation detected",
+        })
+        try:
+            tmp_dir.rmdir()
+        except OSError:
+            pass
+        return result
+
+    process = None
     try:
-        source_path.write_text(code, encoding="utf-8")
-        completed = subprocess.run(
-            [sys.executable, "-I", "-B", str(source_path)],
+        process = subprocess.Popen(
+            [sys.executable, "-I", "-B", "-c", code],
             cwd=str(tmp_dir),
             env=_restricted_env(),
-            input=stdin_data,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
             encoding="utf-8",
             errors="replace",
         )
-        result["stdout"] = (completed.stdout or "")[-8000:]
-        result["stderr"] = (completed.stderr or "")[-8000:]
-        result["exit_code"] = completed.returncode
-        result["ok"] = completed.returncode == 0
-        if completed.returncode != 0:
-            result["error"] = f"Process exited with code {completed.returncode}"
+        stdout, stderr = process.communicate(input=stdin_data, timeout=min(timeout, 5.0))
+        result["stdout"] = (stdout or "")[-8000:]
+        result["stderr"] = (stderr or "")[-8000:]
+        result["exit_code"] = process.returncode
+        result["ok"] = process.returncode == 0
+        if process.returncode != 0:
+            result["error"] = f"Process exited with {process.returncode}"
     except subprocess.TimeoutExpired as exc:
+        if process is not None:
+            process.kill()
+            stdout, stderr = process.communicate()
+        else:
+            stdout, stderr = "", ""
         result["timed_out"] = True
         result["ok"] = False
-        result["exit_code"] = None
-        result["stdout"] = ((exc.stdout or "") if isinstance(exc.stdout, str) else "")[-8000:]
-        result["stderr"] = ((exc.stderr or "") if isinstance(exc.stderr, str) else "")[-8000:]
+        result["exit_code"] = process.returncode if process is not None else None
+        result["stdout"] = ((stdout or exc.stdout or "") if isinstance(stdout or exc.stdout, str) else "")[-8000:]
+        result["stderr"] = ((stderr or exc.stderr or "") if isinstance(stderr or exc.stderr, str) else "")[-8000:]
         result["error"] = f"Sandbox timeout after {timeout}s"
     except Exception as exc:  # noqa: BLE001
         result["ok"] = False
@@ -96,6 +124,7 @@ def execute_python(
         result["stderr"] = str(exc)
     finally:
         result["duration_ms"] = round((time.perf_counter() - started) * 1000, 2)
+        result["latency_ms"] = int(result["duration_ms"])
         result["bytes_stdout"] = len(result["stdout"].encode("utf-8", errors="replace"))
         result["bytes_stderr"] = len(result["stderr"].encode("utf-8", errors="replace"))
         try:
