@@ -3,6 +3,7 @@ Centralized application configuration.
 All environment-driven values live here so the rest of the app
 never touches os.environ directly.
 """
+import os
 from functools import lru_cache
 from typing import List
 
