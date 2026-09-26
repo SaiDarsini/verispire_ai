@@ -104,7 +104,7 @@ app.include_router(memory.router, prefix=API_PREFIX)
 
 @app.get("/", include_in_schema=False)
 def root():
-    return RedirectResponse(url="/dashboard/conversations.html", status_code=307)
+    return RedirectResponse(url="/static/index.html", status_code=307)
 
 
 @app.get("/health", tags=["Root"])
