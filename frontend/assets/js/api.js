@@ -2,7 +2,7 @@
  * VeriSpire AI — API Client
  * Central fetch wrapper: attaches JWT, handles refresh, parses errors.
  */
-const API_BASE = `${window.location.origin.includes(':8000') ? '' : 'http://127.0.0.1:8000'}/api/v1`;
+const API_BASE = `${(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : ''}/api/v1`;
 
 const Storage = {
   _get(keys) {
