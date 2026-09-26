@@ -99,6 +99,10 @@ app.include_router(api_keys.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(memory.router, prefix=API_PREFIX)
 
+app.mount("/dashboard", StaticFiles(directory=os.path.join(frontend_dir, "dashboard"), html=True), name="dashboard")
+app.mount("/auth", StaticFiles(directory=os.path.join(frontend_dir, "auth"), html=True), name="auth")
+app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dir, "assets")), name="assets")
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 @app.get("/", include_in_schema=False)
 def root():
@@ -109,7 +113,3 @@ def root():
 def health():
     return {"status": "ok"}
 
-app.mount("/dashboard", StaticFiles(directory=os.path.join(frontend_dir, "dashboard"), html=True), name="dashboard")
-app.mount("/auth", StaticFiles(directory=os.path.join(frontend_dir, "auth"), html=True), name="auth")
-app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dir, "assets")), name="assets")
-app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
