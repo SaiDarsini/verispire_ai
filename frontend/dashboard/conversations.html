@@ -60,7 +60,7 @@
     </main>
   </div>
   <script>
-    const API_BASE = window.location.origin.includes(':8000') ? '' : 'http://127.0.0.1:8000';
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : '';
     const inputEl = document.getElementById('chat-input'); const sendBtn = document.getElementById('send-btn'); const agentSelector = document.getElementById('agent-selector'); const messagesInner = document.getElementById('chat-messages-inner'); const scrollContainer = document.getElementById('chat-messages');
     inputEl.addEventListener('input', () => { sendBtn.disabled = !inputEl.value.trim(); inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 130) + 'px'; });
     inputEl.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (inputEl.value.trim()) handleSendMessage(); } });
