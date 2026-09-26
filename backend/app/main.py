@@ -80,10 +80,7 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
-app.mount("/dashboard", StaticFiles(directory=os.path.join(frontend_dir, "dashboard"), html=True), name="dashboard")
-app.mount("/auth", StaticFiles(directory=os.path.join(frontend_dir, "auth"), html=True), name="auth")
-app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dir, "assets")), name="assets")
-app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
 
 # Mount API routers under versioned prefix
 API_PREFIX = settings.API_V1_PREFIX
@@ -111,3 +108,8 @@ def root():
 @app.get("/health", tags=["Root"])
 def health():
     return {"status": "ok"}
+
+app.mount("/dashboard", StaticFiles(directory=os.path.join(frontend_dir, "dashboard"), html=True), name="dashboard")
+app.mount("/auth", StaticFiles(directory=os.path.join(frontend_dir, "auth"), html=True), name="auth")
+app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dir, "assets")), name="assets")
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
